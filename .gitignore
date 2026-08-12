@@ -7,3 +7,19 @@
 *.elf
 *.map
 *.log
+
+# Node / backend / frontend
+node_modules/
+dist/
+build/
+coverage/
+*.tsbuildinfo
+.env
+.env.*
+!.env.example
+
+# Mosquitto local secrets
+infra/mosquitto/passwd
+
+# Gateway Wi-Fi/MQTT credentials
+firmware/receiver/secrets.h

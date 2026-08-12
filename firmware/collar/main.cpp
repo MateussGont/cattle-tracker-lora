@@ -23,14 +23,11 @@ constexpr int kLoRaRfSwitch = 38;
 constexpr int kGnssRx = 43;  // XIAO D7, connect to GNSS TX.
 constexpr int kGnssTx = 44;  // XIAO D6, connect to GNSS RX (optional).
 constexpr std::uint32_t kGnssBaud = 9600;
-constexpr std::size_t kMaxGnssLineLength = 128;
 
 SX1262 radio = new Module(kLoRaNss, kLoRaDio1, kLoRaReset, kLoRaBusy);
 TinyGPSPlus gps;
 HardwareSerial gnssSerial(1);
 std::uint32_t sequenceNumber = 0;
-char gnssLineBuffer[kMaxGnssLineLength] = {};
-std::size_t gnssLineLength = 0;
 
 std::int64_t daysFromCivil(int year, unsigned month, unsigned day) {
   year -= month <= 2;
@@ -42,21 +39,6 @@ std::int64_t daysFromCivil(int year, unsigned month, unsigned day) {
   const unsigned dayOfEra =
       yearOfEra * 365U + yearOfEra / 4U - yearOfEra / 100U + dayOfYear;
   return static_cast<std::int64_t>(era) * 146097 + dayOfEra - 719468;
-}
-
-void logGnssLine(char c) {
-  if (gnssLineLength < kMaxGnssLineLength - 1) {
-    gnssLineBuffer[gnssLineLength++] = c;
-  }
-
-  if (c == '\n') {
-    gnssLineBuffer[gnssLineLength] = '\0';
-    if (gnssLineLength > 1) {
-      Serial.print("gps_nmea:");
-      Serial.print(gnssLineBuffer);
-    }
-    gnssLineLength = 0;
-  }
 }
 
 std::uint32_t gnssUnixTime() {
@@ -74,14 +56,9 @@ std::uint32_t gnssUnixTime() {
 
 cattle_tracker::LocationData readLocation() {
   const unsigned long startedAt = millis();
-  std::uint32_t gnssByteCount = 0;
   while (millis() - startedAt < kGnssReadWindowMs) {
     while (gnssSerial.available() > 0) {
-      const char c = static_cast<char>(gnssSerial.read());
-      gps.encode(c);
-      logGnssLine(c);
-      ++gnssByteCount;
-      //Serial.printf("gps_serial: %c\n", c);
+      gps.encode(static_cast<char>(gnssSerial.read()));
     }
     delay(2);
   }
@@ -105,13 +82,6 @@ cattle_tracker::LocationData readLocation() {
 
   // The XIAO ESP32-S3 does not expose battery measurement by default.
   location.batteryMv = 0;
-  Serial.printf(
-      "gps_bytes=%lu gps_valid=%u sat=%d age=%lu date_valid=%u time_valid=%u chars=%lu sentences_with_fix=%d\n",
-      static_cast<unsigned long>(gnssByteCount),
-      gps.location.isValid(), gps.satellites.value(),
-      static_cast<unsigned long>(gps.location.age()), gps.date.isValid(),
-      gps.time.isValid(), static_cast<unsigned long>(gps.charsProcessed()),
-      gps.sentencesWithFix());
   return location;
 }
 
