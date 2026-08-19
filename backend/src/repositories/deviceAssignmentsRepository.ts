@@ -1,4 +1,4 @@
-import { and, desc, eq, isNull } from "drizzle-orm";
+import { and, desc, eq, inArray, isNull } from "drizzle-orm";
 import { db } from "../db/client.js";
 import { deviceAssignments, devices, animals } from "../db/schema.js";
 
@@ -38,6 +38,27 @@ export async function findCurrentAnimalForDevice(deviceId: string) {
     .where(and(eq(deviceAssignments.deviceId, deviceId), isNull(deviceAssignments.unassignedAt)))
     .limit(1);
   return row?.animal ?? null;
+}
+
+/**
+ * Bulk lookup of the current animal (if any) assigned to each device, for
+ * list views (e.g. GET /api/devices) that need to show/filter on assignment
+ * without an N+1 query per row.
+ */
+export async function listCurrentAssignmentsForDevices(deviceIds: string[]) {
+  if (deviceIds.length === 0) {
+    return [];
+  }
+  return db
+    .select({
+      deviceId: deviceAssignments.deviceId,
+      animalId: animals.id,
+      animalTagCode: animals.tagCode,
+      animalName: animals.name,
+    })
+    .from(deviceAssignments)
+    .innerJoin(animals, eq(animals.id, deviceAssignments.animalId))
+    .where(and(inArray(deviceAssignments.deviceId, deviceIds), isNull(deviceAssignments.unassignedAt)));
 }
 
 export async function listAssignmentHistoryByAnimal(animalId: string) {

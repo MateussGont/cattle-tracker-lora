@@ -1,6 +1,6 @@
-import { createContext, useCallback, useContext, useMemo, useState, type ReactNode } from "react";
+import { createContext, useCallback, useContext, useEffect, useMemo, useState, type ReactNode } from "react";
 import { login as loginRequest } from "../api/auth";
-import { setAuthToken } from "../api/client";
+import { AUTH_EXPIRED_EVENT, setAuthToken } from "../api/client";
 import type { AuthUser } from "../types";
 
 const STORAGE_KEY = "cattle-tracker.auth";
@@ -52,6 +52,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setAuthToken(null);
     setAuth(null);
   }, []);
+
+  useEffect(() => {
+    window.addEventListener(AUTH_EXPIRED_EVENT, logout);
+    return () => window.removeEventListener(AUTH_EXPIRED_EVENT, logout);
+  }, [logout]);
 
   const value = useMemo<AuthContextValue>(
     () => ({

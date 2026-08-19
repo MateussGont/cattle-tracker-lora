@@ -8,6 +8,7 @@ export type AlertType =
   | "low_battery"
   | "gps_stale"
   | "no_communication"
+  | "gateway_offline"
   | "other";
 export type AlertSeverity = "info" | "warning" | "critical";
 export type AlertStatus = "open" | "acknowledged" | "resolved";
@@ -17,20 +18,35 @@ export interface CreateAlertInput {
   severity: AlertSeverity;
   animalId?: string | null;
   deviceId?: string | null;
+  gatewayId?: string | null;
   propertyId?: string | null;
+  ruleId?: string | null;
   message: string;
   metadata?: Record<string, unknown>;
 }
 
+export interface AlertMatchKey {
+  type: AlertType;
+  deviceId?: string | null;
+  animalId?: string | null;
+  gatewayId?: string | null;
+  ruleId?: string | null;
+}
+
 /**
- * Finds an already-open alert of the same type for the same entity, so
- * callers can avoid spamming a new row every telemetry cycle while the
- * underlying condition (e.g. low battery) persists.
+ * Finds an already-open alert matching the given key, so callers can avoid
+ * spamming a new row every evaluation cycle while the underlying condition
+ * (e.g. low battery) persists. When ruleId is present it is the most
+ * precise match (needed for property-wide rules with no deviceId/gatewayId
+ * of their own); otherwise falls back to type + entity id, as used by the
+ * hardcoded geofence check which has no rule behind it.
  */
-export async function findOpenAlert(type: AlertType, deviceId?: string | null, animalId?: string | null) {
-  const conditions = [eq(alerts.type, type), eq(alerts.status, "open")];
-  if (deviceId) conditions.push(eq(alerts.deviceId, deviceId));
-  if (animalId) conditions.push(eq(alerts.animalId, animalId));
+export async function findOpenAlert(key: AlertMatchKey) {
+  const conditions = [eq(alerts.type, key.type), eq(alerts.status, "open")];
+  if (key.deviceId) conditions.push(eq(alerts.deviceId, key.deviceId));
+  if (key.animalId) conditions.push(eq(alerts.animalId, key.animalId));
+  if (key.gatewayId) conditions.push(eq(alerts.gatewayId, key.gatewayId));
+  if (key.ruleId) conditions.push(eq(alerts.ruleId, key.ruleId));
 
   const [alert] = await db.select().from(alerts).where(and(...conditions)).limit(1);
   return alert ?? null;
@@ -44,7 +60,9 @@ export async function createAlert(input: CreateAlertInput) {
       severity: input.severity,
       animalId: input.animalId ?? null,
       deviceId: input.deviceId ?? null,
+      gatewayId: input.gatewayId ?? null,
       propertyId: input.propertyId ?? null,
+      ruleId: input.ruleId ?? null,
       message: input.message,
       metadata: input.metadata ?? null,
     })
@@ -52,10 +70,12 @@ export async function createAlert(input: CreateAlertInput) {
   return alert;
 }
 
-export async function resolveOpenAlerts(type: AlertType, deviceId?: string | null, animalId?: string | null) {
-  const conditions = [eq(alerts.type, type), eq(alerts.status, "open")];
-  if (deviceId) conditions.push(eq(alerts.deviceId, deviceId));
-  if (animalId) conditions.push(eq(alerts.animalId, animalId));
+export async function resolveOpenAlerts(key: AlertMatchKey) {
+  const conditions = [eq(alerts.type, key.type), eq(alerts.status, "open")];
+  if (key.deviceId) conditions.push(eq(alerts.deviceId, key.deviceId));
+  if (key.animalId) conditions.push(eq(alerts.animalId, key.animalId));
+  if (key.gatewayId) conditions.push(eq(alerts.gatewayId, key.gatewayId));
+  if (key.ruleId) conditions.push(eq(alerts.ruleId, key.ruleId));
 
   await db
     .update(alerts)

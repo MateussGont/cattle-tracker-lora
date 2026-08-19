@@ -61,7 +61,10 @@ export function useAssignDevice(animalId: string) {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: (deviceId: string) => assignDevice(animalId, deviceId),
-    onSuccess: () => void queryClient.invalidateQueries({ queryKey: ["animal", animalId] }),
+    onSuccess: () => {
+      void queryClient.invalidateQueries({ queryKey: ["animal", animalId] });
+      void queryClient.invalidateQueries({ queryKey: ["devices"] });
+    },
   });
 }
 
@@ -69,6 +72,9 @@ export function useUnassignDevice(animalId: string) {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: () => unassignDevice(animalId),
-    onSuccess: () => void queryClient.invalidateQueries({ queryKey: ["animal", animalId] }),
+    onSuccess: () => {
+      void queryClient.invalidateQueries({ queryKey: ["animal", animalId] });
+      void queryClient.invalidateQueries({ queryKey: ["devices"] });
+    },
   });
 }

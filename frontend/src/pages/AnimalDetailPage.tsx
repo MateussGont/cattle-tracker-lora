@@ -3,15 +3,17 @@ import { Link, useParams } from "react-router-dom";
 import { LoadingState } from "../components/LoadingState";
 import { ErrorState } from "../components/EmptyState";
 import { useAnimal, useAnimalLocation, useAssignDevice, useUnassignDevice } from "../hooks/useAnimals";
+import { useDevices } from "../hooks/useDevices";
 import { ApiError } from "../api/client";
 
 export function AnimalDetailPage() {
   const { id } = useParams<{ id: string }>();
   const { data: animal, isLoading, error } = useAnimal(id);
   const { data: location } = useAnimalLocation(id);
+  const { data: devices } = useDevices({ status: "active" });
   const assignDevice = useAssignDevice(id ?? "");
   const unassignDevice = useUnassignDevice(id ?? "");
-  const [deviceIdInput, setDeviceIdInput] = useState("");
+  const [selectedDeviceId, setSelectedDeviceId] = useState("");
 
   if (isLoading) return <LoadingState label="Carregando animal..." />;
   if (error) return <ErrorState message={error instanceof ApiError ? error.message : "Erro desconhecido."} />;
@@ -75,23 +77,29 @@ export function AnimalDetailPage() {
               className="mt-3 flex gap-2"
               onSubmit={(event) => {
                 event.preventDefault();
-                if (deviceIdInput.trim()) {
-                  assignDevice.mutate(deviceIdInput.trim());
-                  setDeviceIdInput("");
+                if (selectedDeviceId) {
+                  assignDevice.mutate(selectedDeviceId);
+                  setSelectedDeviceId("");
                 }
               }}
             >
-              <input
-                type="text"
+              <select
                 required
-                placeholder="ID do dispositivo (UUID)"
-                value={deviceIdInput}
-                onChange={(event) => setDeviceIdInput(event.target.value)}
+                value={selectedDeviceId}
+                onChange={(event) => setSelectedDeviceId(event.target.value)}
                 className="flex-1 rounded-md border border-slate-300 px-3 py-2 text-sm"
-              />
+              >
+                <option value="">Selecione um dispositivo...</option>
+                {devices?.map((device) => (
+                  <option key={device.id} value={device.id}>
+                    {device.deviceIdentifier}
+                    {device.animal ? ` (vinculado a ${device.animal.tagCode} — será transferido)` : ""}
+                  </option>
+                ))}
+              </select>
               <button
                 type="submit"
-                disabled={assignDevice.isPending}
+                disabled={assignDevice.isPending || !selectedDeviceId}
                 className="rounded-md bg-slate-900 px-3 py-2 text-sm font-medium text-white hover:bg-slate-800 disabled:opacity-60"
               >
                 Associar

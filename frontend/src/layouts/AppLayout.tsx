@@ -7,8 +7,10 @@ const NAV_ITEMS = [
   { to: "/map", label: "Mapa" },
   { to: "/animals", label: "Animais" },
   { to: "/devices", label: "Dispositivos" },
+  { to: "/gateways", label: "Gateways" },
   { to: "/history", label: "Histórico" },
   { to: "/alerts", label: "Alertas" },
+  { to: "/alert-rules", label: "Regras de Alerta" },
   { to: "/properties", label: "Propriedades" },
   { to: "/settings", label: "Configurações" },
 ];

@@ -31,7 +31,13 @@ export function HistoryPage() {
   const [period, setPeriod] = useState<Period>("7d");
 
   const { data: animals } = useAnimals();
-  const { data: history, isLoading, error } = useAnimalHistory(animalId, { from: periodToFrom(period), limit: 2000 });
+  // periodToFrom(period) uses `new Date()`, so it must be memoized on `period`
+  // alone — recomputing it inline on every render produced a new `from`
+  // string (and therefore a new React Query cache key) each time, which
+  // triggered an immediate refetch -> re-render -> new `from` value again,
+  // an infinite request loop that flooded the backend's rate limiter.
+  const from = useMemo(() => periodToFrom(period), [period]);
+  const { data: history, isLoading, error } = useAnimalHistory(animalId, { from, limit: 2000 });
 
   const trajectory = useMemo<[number, number][]>(() => {
     if (!history) return [];

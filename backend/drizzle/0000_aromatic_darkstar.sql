@@ -72,7 +72,7 @@ CREATE TABLE "locations" (
 	"id" bigserial PRIMARY KEY NOT NULL,
 	"device_id" uuid NOT NULL,
 	"animal_id" uuid,
-	"position" "geography(Point,4326)" NOT NULL,
+	"position" geography(Point,4326) NOT NULL,
 	"gps_accuracy" real,
 	"battery_level" smallint,
 	"recorded_at" timestamp with time zone NOT NULL,
@@ -82,7 +82,7 @@ CREATE TABLE "locations" (
 CREATE TABLE "properties" (
 	"id" uuid PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
 	"name" text NOT NULL,
-	"location" "geography(Point,4326)",
+	"location" geography(Point,4326),
 	"boundary" geometry(Polygon,4326),
 	"area_hectares" real,
 	"created_at" timestamp with time zone DEFAULT now() NOT NULL,

@@ -10,6 +10,7 @@ import { animalRoutes } from "./routes/animals.js";
 import { authRoutes } from "./routes/auth.js";
 import { dashboardRoutes } from "./routes/dashboard.js";
 import { deviceRoutes } from "./routes/devices.js";
+import { gatewayRoutes } from "./routes/gateways.js";
 import { mapRoutes } from "./routes/map.js";
 import { propertyRoutes } from "./routes/properties.js";
 import { settingsRoutes } from "./routes/settings.js";
@@ -44,6 +45,7 @@ export async function buildApp(): Promise<FastifyInstance> {
   await app.register(telemetryRoutes);
   await app.register(animalRoutes);
   await app.register(deviceRoutes);
+  await app.register(gatewayRoutes);
   await app.register(mapRoutes);
   await app.register(propertyRoutes);
   await app.register(alertRoutes);

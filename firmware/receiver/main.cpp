@@ -16,6 +16,13 @@ constexpr int kLoRaDio0 = 26;
 constexpr int kLoRaReset = 14;
 constexpr int kLoRaDio1 = 35;
 
+// RadioLib's default blocking receive() times out after ~500% of the
+// time-on-air of a max-length packet (well under 1 s at SF7/125 kHz), so an
+// idle radio re-polls and logs "rx_error" several times per second. The
+// collar only transmits every 10 s, so there is no reason to poll that
+// often; widen the window each receive() call listens for before giving up.
+constexpr uint32_t kReceiveTimeoutMs = 2000;
+
 SX1276 radio = new Module(kLoRaNss, kLoRaDio0, kLoRaReset, kLoRaDio1);
 
 const cattle_tracker::GatewayConfig kGatewayConfig{
@@ -57,7 +64,7 @@ void loop() {
   mqttPublisher.loop();
 
   std::uint8_t payload[cattle_tracker::kEncodedLocationSize] = {};
-  const int16_t state = radio.receive(payload, sizeof(payload));
+  const int16_t state = radio.receive(payload, sizeof(payload), kReceiveTimeoutMs);
   if (state != RADIOLIB_ERR_NONE) {
     Serial.printf("{\"event\":\"rx_error\",\"code\":%d}\n", state);
     return;

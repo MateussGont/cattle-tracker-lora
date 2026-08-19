@@ -35,6 +35,15 @@ export interface Animal {
   updatedAt: string;
 }
 
+export interface Gateway {
+  id: string;
+  name: string;
+  gatewayIdentifier: string;
+  propertyId: string | null;
+  createdAt: string;
+  updatedAt: string;
+}
+
 export type DeviceStatus = "active" | "inactive" | "maintenance";
 
 export interface Device {
@@ -42,6 +51,7 @@ export interface Device {
   deviceIdentifier: string;
   radioDeviceId: number;
   hardwareModel: string | null;
+  gatewayId: string | null;
   status: DeviceStatus;
   batteryLevel: number | null;
   lastLatitude: number | null;
@@ -49,6 +59,7 @@ export interface Device {
   lastGpsAccuracy: number | null;
   lastSeen: string | null;
   communicationStatus?: CommunicationStatus;
+  animal?: { id: string; tagCode: string; name: string | null } | null;
   createdAt: string;
   updatedAt: string;
 }
@@ -79,6 +90,7 @@ export type AlertType =
   | "low_battery"
   | "gps_stale"
   | "no_communication"
+  | "gateway_offline"
   | "other";
 export type AlertSeverity = "info" | "warning" | "critical";
 export type AlertStatus = "open" | "acknowledged" | "resolved";
@@ -89,12 +101,34 @@ export interface Alert {
   severity: AlertSeverity;
   animalId: string | null;
   deviceId: string | null;
+  gatewayId: string | null;
   propertyId: string | null;
+  ruleId: string | null;
   message: string;
   status: AlertStatus;
   metadata: Record<string, unknown> | null;
   triggeredAt: string;
   resolvedAt: string | null;
+}
+
+export type AlertRuleMetric =
+  | "battery_level"
+  | "device_offline_minutes"
+  | "gps_stale_minutes"
+  | "gateway_offline_minutes";
+
+export interface AlertRule {
+  id: string;
+  propertyId: string;
+  deviceId: string | null;
+  gatewayId: string | null;
+  metric: AlertRuleMetric;
+  thresholdValue: number;
+  severity: AlertSeverity;
+  name: string;
+  enabled: boolean;
+  createdAt: string;
+  updatedAt: string;
 }
 
 export interface AnimalMapMarker {

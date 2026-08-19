@@ -37,6 +37,7 @@ export interface CreateDeviceInput {
   deviceIdentifier: string;
   radioDeviceId: number;
   hardwareModel?: string;
+  gatewayId?: string;
 }
 
 export async function createDevice(input: CreateDeviceInput) {
@@ -63,6 +64,7 @@ export interface HeartbeatInput {
   gpsAccuracy?: number;
   batteryLevel?: number;
   seenAt: Date;
+  gpsFixAt?: Date;
 }
 
 export async function recordHeartbeat(input: HeartbeatInput): Promise<void> {
@@ -74,6 +76,7 @@ export async function recordHeartbeat(input: HeartbeatInput): Promise<void> {
       lastGpsAccuracy: input.gpsAccuracy ?? sql`${devices.lastGpsAccuracy}`,
       batteryLevel: input.batteryLevel ?? sql`${devices.batteryLevel}`,
       lastSeen: input.seenAt,
+      lastGpsFixAt: input.gpsFixAt ?? sql`${devices.lastGpsFixAt}`,
       updatedAt: new Date(),
     })
     .where(eq(devices.id, input.deviceId));

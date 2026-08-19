@@ -1,5 +1,6 @@
+// @vitest-environment jsdom
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { apiRequest, ApiError, setAuthToken } from "./client";
+import { apiRequest, ApiError, AUTH_EXPIRED_EVENT, setAuthToken } from "./client";
 
 function mockFetchOnce(response: { ok: boolean; status: number; json?: unknown; contentType?: string }) {
   const fetchMock = vi.fn().mockResolvedValue({
@@ -52,5 +53,30 @@ describe("apiRequest", () => {
     mockFetchOnce({ ok: true, status: 204 });
 
     await expect(apiRequest("/api/alerts/1")).resolves.toBeUndefined();
+  });
+
+  it("clears the token and dispatches AUTH_EXPIRED_EVENT on a 401 while authenticated", async () => {
+    setAuthToken("token-123");
+    mockFetchOnce({ ok: false, status: 401, json: { error: "unauthorized", message: "Token expirado." } });
+
+    const listener = vi.fn();
+    window.addEventListener(AUTH_EXPIRED_EVENT, listener);
+
+    await expect(apiRequest("/api/animals")).rejects.toThrow();
+
+    expect(listener).toHaveBeenCalledTimes(1);
+    window.removeEventListener(AUTH_EXPIRED_EVENT, listener);
+  });
+
+  it("does not dispatch AUTH_EXPIRED_EVENT on a 401 when no token was set (e.g. failed login)", async () => {
+    mockFetchOnce({ ok: false, status: 401, json: { error: "unauthorized", message: "Credenciais inválidas." } });
+
+    const listener = vi.fn();
+    window.addEventListener(AUTH_EXPIRED_EVENT, listener);
+
+    await expect(apiRequest("/api/auth/login")).rejects.toThrow();
+
+    expect(listener).not.toHaveBeenCalled();
+    window.removeEventListener(AUTH_EXPIRED_EVENT, listener);
   });
 });

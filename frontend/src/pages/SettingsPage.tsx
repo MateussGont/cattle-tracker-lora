@@ -17,7 +17,7 @@ export function SettingsPage() {
         {isLoading && <LoadingState label="Carregando configurações..." />}
         {error && <ErrorState message={error instanceof ApiError ? error.message : "Erro desconhecido."} />}
         {data && (
-          <div className="overflow-hidden rounded-lg border border-slate-200 bg-white">
+          <div className="overflow-x-auto rounded-lg border border-slate-200 bg-white">
             <table className="w-full text-left text-sm">
               <tbody className="divide-y divide-slate-100">
                 {data.map((setting) => (

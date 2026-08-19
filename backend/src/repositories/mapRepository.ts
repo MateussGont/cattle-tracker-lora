@@ -66,6 +66,6 @@ export async function listAnimalMapMarkers(propertyIds?: string[]): Promise<Anim
     latitude: row.last_latitude,
     longitude: row.last_longitude,
     batteryLevel: row.battery_level,
-    lastSeen: row.last_seen,
+    lastSeen: row.last_seen ? new Date(row.last_seen) : null,
   }));
 }

@@ -16,6 +16,9 @@ export function setAuthToken(token: string | null): void {
   authToken = token;
 }
 
+/** Fired when a request is rejected with 401 while a token was set, so the session had expired/become invalid. */
+export const AUTH_EXPIRED_EVENT = "auth:expired";
+
 export interface RequestOptions {
   method?: "GET" | "POST" | "PUT" | "DELETE";
   body?: unknown;
@@ -54,6 +57,10 @@ export async function apiRequest<T>(path: string, options: RequestOptions = {}):
   const payload = isJson ? await response.json() : undefined;
 
   if (!response.ok) {
+    if (response.status === 401 && authToken) {
+      authToken = null;
+      window.dispatchEvent(new Event(AUTH_EXPIRED_EVENT));
+    }
     const message = payload && typeof payload === "object" && "message" in payload
       ? String((payload as { message: unknown }).message)
       : response.statusText;

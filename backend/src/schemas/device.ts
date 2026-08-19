@@ -4,6 +4,7 @@ export const createDeviceSchema = z.object({
   deviceIdentifier: z.string().min(1).max(64),
   radioDeviceId: z.number().int().min(0).max(65535),
   hardwareModel: z.string().max(120).optional(),
+  gatewayId: z.string().uuid().optional(),
 });
 
 export const updateDeviceSchema = z.object({

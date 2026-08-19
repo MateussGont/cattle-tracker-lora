@@ -16,6 +16,7 @@
     "test:frontend": "npm run test --workspace frontend",
     "db:generate": "npm run db:generate --workspace backend",
     "db:migrate": "npm run db:migrate --workspace backend",
-    "db:seed": "npm run db:seed --workspace backend"
+    "db:seed": "npm run db:seed --workspace backend",
+    "firmware:collar:sync": "pio run -e collar_xiao_sx1262 && node scripts/sync-firmware.mjs"
   }
 }

@@ -60,6 +60,14 @@ export async function findViolatedGeofenceIds(
   return rows.rows.map((row) => row.id);
 }
 
+export async function deleteGeofence(propertyId: string, geofenceId: string): Promise<boolean> {
+  const deleted = await db
+    .delete(geofences)
+    .where(and(eq(geofences.id, geofenceId), eq(geofences.propertyId, propertyId)))
+    .returning({ id: geofences.id });
+  return deleted.length > 0;
+}
+
 export async function propertyHasActiveGeofences(propertyId: string): Promise<boolean> {
   const [row] = await db
     .select({ id: geofences.id })

@@ -19,8 +19,13 @@ export interface CreateDeviceInput {
   deviceIdentifier: string;
   radioDeviceId: number;
   hardwareModel?: string;
+  gatewayId?: string;
 }
 
 export function createDevice(input: CreateDeviceInput): Promise<Device> {
   return apiRequest<Device>("/api/devices", { method: "POST", body: input });
+}
+
+export function retireDevice(id: string): Promise<void> {
+  return apiRequest<void>(`/api/devices/${id}`, { method: "DELETE" });
 }

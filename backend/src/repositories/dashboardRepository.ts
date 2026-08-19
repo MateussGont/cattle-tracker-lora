@@ -32,7 +32,7 @@ export async function getAnimalDeviceSnapshot(propertyIds?: string[]): Promise<A
 
   return result.rows.map((row) => ({
     animalId: row.animal_id,
-    lastSeen: row.last_seen,
+    lastSeen: row.last_seen ? new Date(row.last_seen) : null,
     batteryLevel: row.battery_level,
   }));
 }

@@ -54,6 +54,7 @@ export const alertTypeEnum = pgEnum("alert_type", [
   "low_battery",
   "gps_stale",
   "no_communication",
+  "gateway_offline",
   "other",
 ]);
 export const alertSeverityEnum = pgEnum("alert_severity", [
@@ -65,6 +66,12 @@ export const alertStatusEnum = pgEnum("alert_status", [
   "open",
   "acknowledged",
   "resolved",
+]);
+export const alertRuleMetricEnum = pgEnum("alert_rule_metric", [
+  "battery_level",
+  "device_offline_minutes",
+  "gps_stale_minutes",
+  "gateway_offline_minutes",
 ]);
 
 export const users = pgTable("users", {
@@ -120,6 +127,27 @@ export const animals = pgTable("animals", {
 }));
 
 /**
+ * One row per physical receiver (Heltec gateway). gatewayIdentifier matches
+ * the GATEWAY_ID compiled into that receiver's firmware/receiver/secrets.h,
+ * so telemetry published by a given receiver can be traced back to it.
+ * Purely organizational today (a farm with multiple properties may run one
+ * receiver per property); it is not itself provisioned through the app —
+ * only referenced when provisioning a collar.
+ */
+export const gateways = pgTable("gateways", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  name: text("name").notNull(),
+  gatewayIdentifier: text("gateway_identifier").notNull(),
+  propertyId: uuid("property_id").references(() => properties.id, { onDelete: "set null" }),
+  lastSeen: timestamp("last_seen", { withTimezone: true }),
+  createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+  updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
+}, (table) => ({
+  identifierUnique: uniqueIndex("gateways_identifier_unique").on(table.gatewayIdentifier),
+  propertyIdx: index("gateways_property_idx").on(table.propertyId),
+}));
+
+/**
  * device_identifier (e.g. BRINCO-0001) is the business-facing id. deviceId
  * (uint16) is the compact id carried on the LoRa radio payload to save
  * airtime; the mapping between them is created at provisioning time
@@ -131,12 +159,14 @@ export const devices = pgTable("devices", {
   deviceIdentifier: text("device_identifier").notNull(),
   radioDeviceId: smallint("radio_device_id").notNull(),
   hardwareModel: text("hardware_model"),
+  gatewayId: uuid("gateway_id").references(() => gateways.id, { onDelete: "set null" }),
   status: deviceStatusEnum("status").notNull().default("active"),
   batteryLevel: smallint("battery_level"),
   lastLatitude: real("last_latitude"),
   lastLongitude: real("last_longitude"),
   lastGpsAccuracy: real("last_gps_accuracy"),
   lastSeen: timestamp("last_seen", { withTimezone: true }),
+  lastGpsFixAt: timestamp("last_gps_fix_at", { withTimezone: true }),
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
   updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
 }, (table) => ({
@@ -144,6 +174,7 @@ export const devices = pgTable("devices", {
   radioDeviceIdUnique: uniqueIndex("devices_radio_device_id_unique").on(table.radioDeviceId),
   statusIdx: index("devices_status_idx").on(table.status),
   lastSeenIdx: index("devices_last_seen_idx").on(table.lastSeen),
+  gatewayIdx: index("devices_gateway_idx").on(table.gatewayId),
 }));
 
 /**
@@ -174,7 +205,7 @@ export const deviceAssignments = pgTable("device_assignments", {
  * about pipeline latency and out-of-order delivery.
  */
 export const locations = pgTable("locations", {
-  id: bigserial("id", { mode: "bigint" }).primaryKey(),
+  id: bigserial("id", { mode: "number" }).primaryKey(),
   deviceId: uuid("device_id").notNull().references(() => devices.id, { onDelete: "cascade" }),
   animalId: uuid("animal_id").references(() => animals.id, { onDelete: "set null" }),
   position: geographyPoint("position").notNull(),
@@ -208,7 +239,9 @@ export const alerts = pgTable("alerts", {
   severity: alertSeverityEnum("severity").notNull().default("warning"),
   animalId: uuid("animal_id").references(() => animals.id, { onDelete: "set null" }),
   deviceId: uuid("device_id").references(() => devices.id, { onDelete: "set null" }),
+  gatewayId: uuid("gateway_id").references(() => gateways.id, { onDelete: "set null" }),
   propertyId: uuid("property_id").references(() => properties.id, { onDelete: "set null" }),
+  ruleId: uuid("rule_id").references(() => alertRules.id, { onDelete: "set null" }),
   message: text("message").notNull(),
   status: alertStatusEnum("status").notNull().default("open"),
   metadata: jsonb("metadata"),
@@ -220,8 +253,41 @@ export const alerts = pgTable("alerts", {
   statusIdx: index("alerts_status_idx").on(table.status),
   animalIdx: index("alerts_animal_idx").on(table.animalId),
   deviceIdx: index("alerts_device_idx").on(table.deviceId),
+  gatewayIdx: index("alerts_gateway_idx").on(table.gatewayId),
   propertyIdx: index("alerts_property_idx").on(table.propertyId),
+  ruleIdx: index("alerts_rule_idx").on(table.ruleId),
   triggeredAtIdx: index("alerts_triggered_at_idx").on(table.triggeredAt),
+}));
+
+/**
+ * User-configurable threshold rules that drive non-spatial alerts (battery,
+ * device/gateway communication gaps, GPS staleness). Geofence alerts are
+ * spatial and stay driven by the geofences table + ST_Contains, not by this
+ * generic engine. deviceId/gatewayId are mutually exclusive depending on
+ * metric: device-scoped metrics (battery_level, device_offline_minutes,
+ * gps_stale_minutes) use deviceId (null = every device in the property);
+ * gateway_offline_minutes uses gatewayId (null = every gateway in the
+ * property). Comparison direction is fixed per metric in the evaluator, not
+ * stored here (battery_level triggers below threshold, the time-based
+ * metrics trigger above threshold).
+ */
+export const alertRules = pgTable("alert_rules", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  propertyId: uuid("property_id").notNull().references(() => properties.id, { onDelete: "cascade" }),
+  deviceId: uuid("device_id").references(() => devices.id, { onDelete: "set null" }),
+  gatewayId: uuid("gateway_id").references(() => gateways.id, { onDelete: "set null" }),
+  metric: alertRuleMetricEnum("metric").notNull(),
+  thresholdValue: real("threshold_value").notNull(),
+  severity: alertSeverityEnum("severity").notNull().default("warning"),
+  name: text("name").notNull(),
+  enabled: boolean("enabled").notNull().default(true),
+  createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+  updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
+}, (table) => ({
+  propertyIdx: index("alert_rules_property_idx").on(table.propertyId),
+  deviceIdx: index("alert_rules_device_idx").on(table.deviceId),
+  gatewayIdx: index("alert_rules_gateway_idx").on(table.gatewayId),
+  metricIdx: index("alert_rules_metric_idx").on(table.metric),
 }));
 
 /**
@@ -244,6 +310,12 @@ export const propertiesRelations = relations(properties, ({ many }) => ({
   users: many(userProperties),
   animals: many(animals),
   geofences: many(geofences),
+  gateways: many(gateways),
+}));
+
+export const gatewaysRelations = relations(gateways, ({ one, many }) => ({
+  property: one(properties, { fields: [gateways.propertyId], references: [properties.id] }),
+  devices: many(devices),
 }));
 
 export const animalsRelations = relations(animals, ({ one, many }) => ({
@@ -252,9 +324,10 @@ export const animalsRelations = relations(animals, ({ one, many }) => ({
   locations: many(locations),
 }));
 
-export const devicesRelations = relations(devices, ({ many }) => ({
+export const devicesRelations = relations(devices, ({ one, many }) => ({
   assignments: many(deviceAssignments),
   locations: many(locations),
+  gateway: one(gateways, { fields: [devices.gatewayId], references: [gateways.id] }),
 }));
 
 export const deviceAssignmentsRelations = relations(deviceAssignments, ({ one }) => ({

@@ -1,8 +1,21 @@
 import { eq, sql } from "drizzle-orm";
 import { db } from "../db/client.js";
-import { properties } from "../db/schema.js";
+import { alertRules, properties } from "../db/schema.js";
 import { parseGeoJson, pointToWkt, polygonToWkt, type LatLng } from "../utils/geo.js";
 import type { GeoJsonPoint, GeoJsonPolygon } from "../schemas/geoJson.js";
+
+/**
+ * Every new property starts with the same 4 basic threshold-based alert
+ * rules (matching the backfill applied to pre-existing properties in
+ * migration 0002), so a farm owner never has to configure the basics from
+ * scratch — they can edit/disable/delete these or add their own.
+ */
+const DEFAULT_ALERT_RULES = [
+  { metric: "battery_level" as const, thresholdValue: 20, name: "Bateria baixa" },
+  { metric: "device_offline_minutes" as const, thresholdValue: 60, name: "Dispositivo sem comunicação" },
+  { metric: "gps_stale_minutes" as const, thresholdValue: 60, name: "GPS desatualizado" },
+  { metric: "gateway_offline_minutes" as const, thresholdValue: 60, name: "Gateway sem comunicação" },
+];
 
 const propertyGeoJsonSelect = {
   id: properties.id,
@@ -58,5 +71,18 @@ export async function createProperty(input: CreatePropertyInput) {
         : undefined,
     })
     .returning({ id: properties.id });
+  if (!property) {
+    throw new Error("Failed to create property");
+  }
+
+  await db.insert(alertRules).values(
+    DEFAULT_ALERT_RULES.map((rule) => ({
+      propertyId: property.id,
+      metric: rule.metric,
+      thresholdValue: rule.thresholdValue,
+      name: rule.name,
+    })),
+  );
+
   return property;
 }

@@ -3,11 +3,13 @@ import { Navigate, Route, Routes } from "react-router-dom";
 import { AppLayout } from "./layouts/AppLayout";
 import { ProtectedRoute } from "./routes/ProtectedRoute";
 import { LoadingState } from "./components/LoadingState";
+import { AlertRulesPage } from "./pages/AlertRulesPage";
 import { AlertsPage } from "./pages/AlertsPage";
 import { AnimalDetailPage } from "./pages/AnimalDetailPage";
 import { AnimalsPage } from "./pages/AnimalsPage";
 import { DashboardPage } from "./pages/DashboardPage";
 import { DevicesPage } from "./pages/DevicesPage";
+import { GatewaysPage } from "./pages/GatewaysPage";
 import { LoginPage } from "./pages/LoginPage";
 import { PropertiesPage } from "./pages/PropertiesPage";
 import { SettingsPage } from "./pages/SettingsPage";
@@ -37,6 +39,7 @@ export function App() {
           <Route path="/animals" element={<AnimalsPage />} />
           <Route path="/animals/:id" element={<AnimalDetailPage />} />
           <Route path="/devices" element={<DevicesPage />} />
+          <Route path="/gateways" element={<GatewaysPage />} />
           <Route
             path="/history"
             element={
@@ -46,6 +49,7 @@ export function App() {
             }
           />
           <Route path="/alerts" element={<AlertsPage />} />
+          <Route path="/alert-rules" element={<AlertRulesPage />} />
           <Route path="/properties" element={<PropertiesPage />} />
           <Route path="/settings" element={<SettingsPage />} />
         </Route>

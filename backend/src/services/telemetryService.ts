@@ -1,8 +1,8 @@
 import { findCurrentAnimalForDevice } from "../repositories/deviceAssignmentsRepository.js";
 import { findDeviceByRadioId, recordHeartbeat } from "../repositories/devicesRepository.js";
+import { touchGatewayLastSeen } from "../repositories/gatewaysRepository.js";
 import { findViolatedGeofenceIds, propertyHasActiveGeofences } from "../repositories/geofencesRepository.js";
 import { insertLocation } from "../repositories/locationsRepository.js";
-import { getStatusThresholds } from "../repositories/settingsRepository.js";
 import {
   TELEMETRY_FLAG_BATTERY_VALID,
   TELEMETRY_FLAG_GNSS_FIX,
@@ -10,8 +10,8 @@ import {
   type TelemetryInput,
 } from "../schemas/telemetry.js";
 import { batteryPercentFromMv } from "../utils/battery.js";
+import { evaluateDeviceMetric } from "./alertRuleEvaluator.js";
 import { clearAlert, raiseAlertOnce } from "./alertService.js";
-import { isLowBattery } from "./statusService.js";
 
 export class UnknownDeviceError extends Error {
   constructor(radioDeviceId: number) {
@@ -50,12 +50,15 @@ export async function ingestTelemetry(input: TelemetryInput): Promise<TelemetryR
 
   const animal = await findCurrentAnimalForDevice(device.id);
 
+  await touchGatewayLastSeen(input.gatewayId);
+
   await recordHeartbeat({
     deviceId: device.id,
     latitude: hasFix ? input.latitude : undefined,
     longitude: hasFix ? input.longitude : undefined,
     batteryLevel: batteryPercent ?? undefined,
     seenAt: recordedAt,
+    gpsFixAt: hasFix ? recordedAt : undefined,
   });
 
   if (hasFix) {
@@ -66,13 +69,14 @@ export async function ingestTelemetry(input: TelemetryInput): Promise<TelemetryR
       batteryLevel: batteryPercent ?? undefined,
       recordedAt,
     });
-
-    if (animal) {
-      await checkGeofences(animal.id, animal.propertyId, { latitude: input.latitude, longitude: input.longitude });
-    }
   }
 
-  await checkBattery(device.id, animal?.id ?? null, batteryPercent);
+  if (animal) {
+    if (hasFix) {
+      await checkGeofences(animal.id, animal.propertyId, { latitude: input.latitude, longitude: input.longitude });
+    }
+    await evaluateDeviceMetric(animal.propertyId, device.id, animal.id, "battery_level", batteryPercent);
+  }
 
   return {
     deviceId: device.id,
@@ -107,26 +111,6 @@ async function checkGeofences(
       metadata: { geofenceIds: violatedGeofenceIds },
     });
   } else {
-    await clearAlert("geofence_exit", null, animalId);
-  }
-}
-
-async function checkBattery(deviceId: string, animalId: string | null, batteryPercent: number | null): Promise<void> {
-  if (batteryPercent === null) {
-    return;
-  }
-
-  const thresholds = await getStatusThresholds();
-  if (isLowBattery(batteryPercent, thresholds)) {
-    await raiseAlertOnce({
-      type: "low_battery",
-      severity: "warning",
-      deviceId,
-      animalId,
-      message: `Bateria em ${batteryPercent}%, abaixo do limite configurado (${thresholds.lowBatteryPercent}%).`,
-      metadata: { batteryPercent },
-    });
-  } else {
-    await clearAlert("low_battery", deviceId, animalId);
+    await clearAlert({ type: "geofence_exit", animalId });
   }
 }
