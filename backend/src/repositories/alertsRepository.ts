@@ -1,4 +1,4 @@
-import { and, desc, eq, isNull, or, sql } from "drizzle-orm";
+import { and, desc, eq, inArray } from "drizzle-orm";
 import { db } from "../db/client.js";
 import { alerts } from "../db/schema.js";
 
@@ -92,13 +92,15 @@ export interface ListAlertsFilter {
 }
 
 export async function listAlerts(filter: ListAlertsFilter) {
+  if (filter.propertyIds !== undefined && filter.propertyIds.length === 0) {
+    return [];
+  }
   const conditions = [];
   if (filter.propertyId) {
     conditions.push(eq(alerts.propertyId, filter.propertyId));
-  } else if (filter.propertyIds) {
-    conditions.push(
-      or(sql`${alerts.propertyId} = ANY(${filter.propertyIds})`, isNull(alerts.propertyId)),
-    );
+  }
+  if (filter.propertyIds !== undefined) {
+    conditions.push(inArray(alerts.propertyId, filter.propertyIds));
   }
   if (filter.status) {
     conditions.push(eq(alerts.status, filter.status));
@@ -123,5 +125,10 @@ export async function updateAlertStatus(id: string, status: AlertStatus) {
     })
     .where(eq(alerts.id, id))
     .returning();
+  return alert ?? null;
+}
+
+export async function findAlertById(id: string) {
+  const [alert] = await db.select().from(alerts).where(eq(alerts.id, id)).limit(1);
   return alert ?? null;
 }

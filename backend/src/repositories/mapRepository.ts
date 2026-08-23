@@ -22,7 +22,12 @@ export interface AnimalMapMarker {
  * everyone right now", not history.
  */
 export async function listAnimalMapMarkers(propertyIds?: string[]): Promise<AnimalMapMarker[]> {
-  const propertyFilter = propertyIds ? sql`AND a.property_id = ANY(${propertyIds})` : sql``;
+  if (propertyIds !== undefined && propertyIds.length === 0) {
+    return [];
+  }
+  const propertyFilter = propertyIds === undefined
+    ? sql``
+    : sql`AND a.property_id IN (${sql.join(propertyIds.map((id) => sql`${id}`), sql`, `)})`;
 
   const result = await db.execute<{
     animal_id: string;

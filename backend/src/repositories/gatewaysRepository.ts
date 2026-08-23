@@ -1,13 +1,19 @@
-import { eq } from "drizzle-orm";
+import { eq, inArray } from "drizzle-orm";
 import { db } from "../db/client.js";
 import { gateways } from "../db/schema.js";
 
 export async function listGateways(propertyIds?: string[]) {
-  if (!propertyIds) {
+  if (propertyIds === undefined) {
     return db.select().from(gateways).orderBy(gateways.name);
   }
-  const rows = await db.select().from(gateways).orderBy(gateways.name);
-  return rows.filter((row) => row.propertyId === null || propertyIds.includes(row.propertyId));
+  if (propertyIds.length === 0) {
+    return [];
+  }
+  return db
+    .select()
+    .from(gateways)
+    .where(inArray(gateways.propertyId, propertyIds))
+    .orderBy(gateways.name);
 }
 
 export async function findGatewayById(id: string) {

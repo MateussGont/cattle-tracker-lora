@@ -1,4 +1,4 @@
-import { and, eq, ilike, sql } from "drizzle-orm";
+import { and, eq, ilike, inArray, sql } from "drizzle-orm";
 import { db } from "../db/client.js";
 import { animals } from "../db/schema.js";
 
@@ -12,11 +12,15 @@ export interface ListAnimalsFilter {
 }
 
 export async function listAnimals(filter: ListAnimalsFilter) {
+  if (filter.propertyIds !== undefined && filter.propertyIds.length === 0) {
+    return [];
+  }
   const conditions = [];
   if (filter.propertyId) {
     conditions.push(eq(animals.propertyId, filter.propertyId));
-  } else if (filter.propertyIds) {
-    conditions.push(sql`${animals.propertyId} = ANY(${filter.propertyIds})`);
+  }
+  if (filter.propertyIds !== undefined) {
+    conditions.push(inArray(animals.propertyId, filter.propertyIds));
   }
   if (filter.status) {
     conditions.push(eq(animals.status, filter.status));

@@ -1,5 +1,9 @@
 import type { FastifyReply, FastifyRequest } from "fastify";
-import { getUserPropertyIds } from "../repositories/usersRepository.js";
+import {
+  getUserPropertyIds,
+  getUserPropertyRole,
+  type PropertyAccessRole,
+} from "../repositories/usersRepository.js";
 
 export interface JwtUserPayload {
   sub: string;
@@ -34,6 +38,24 @@ export async function assertPropertyAccess(request: FastifyRequest, propertyId: 
   }
   const propertyIds = await getUserPropertyIds(request.user.sub);
   return propertyIds.includes(propertyId);
+}
+
+export async function propertyAccessRole(
+  request: FastifyRequest,
+  propertyId: string,
+): Promise<PropertyAccessRole | null> {
+  if (request.user.role === "admin") {
+    return "admin";
+  }
+  return getUserPropertyRole(request.user.sub, propertyId);
+}
+
+export async function assertPropertyWriteAccess(
+  request: FastifyRequest,
+  propertyId: string,
+): Promise<boolean> {
+  const role = await propertyAccessRole(request, propertyId);
+  return role === "admin" || role === "manager";
 }
 
 export async function accessiblePropertyIds(request: FastifyRequest): Promise<string[] | undefined> {

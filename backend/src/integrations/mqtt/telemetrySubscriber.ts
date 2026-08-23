@@ -38,7 +38,11 @@ async function handleMessage(topic: string, payload: Buffer): Promise<void> {
 
   try {
     const result = await ingestTelemetry(parsed.data);
-    broadcast({ type: "location_update", payload: { ...result, gatewayId: parsed.data.gatewayId } });
+    broadcast({
+      type: "location_update",
+      propertyId: result.propertyId,
+      payload: { ...result, gatewayId: parsed.data.gatewayId },
+    });
   } catch (error) {
     if (error instanceof UnknownDeviceError) {
       logger.warn({ radioDeviceId: parsed.data.radioDeviceId }, error.message);

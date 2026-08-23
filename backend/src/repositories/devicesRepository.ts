@@ -1,6 +1,6 @@
-import { and, eq, sql } from "drizzle-orm";
+import { and, eq, inArray, isNull, or, sql } from "drizzle-orm";
 import { db } from "../db/client.js";
-import { devices } from "../db/schema.js";
+import { animals, deviceAssignments, devices, gateways } from "../db/schema.js";
 
 export async function findDeviceByRadioId(radioDeviceId: number) {
   const [device] = await db
@@ -18,12 +18,33 @@ export async function findDeviceById(id: string) {
 
 export interface ListDevicesFilter {
   status?: "active" | "inactive" | "maintenance";
+  propertyIds?: string[];
   limit: number;
   offset: number;
 }
 
 export async function listDevices(filter: ListDevicesFilter) {
+  if (filter.propertyIds !== undefined && filter.propertyIds.length === 0) {
+    return [];
+  }
   const conditions = filter.status ? [eq(devices.status, filter.status)] : [];
+  if (filter.propertyIds !== undefined) {
+    const assignedDeviceIds = db
+      .select({ id: deviceAssignments.deviceId })
+      .from(deviceAssignments)
+      .innerJoin(animals, eq(animals.id, deviceAssignments.animalId))
+      .where(and(isNull(deviceAssignments.unassignedAt), inArray(animals.propertyId, filter.propertyIds)));
+    const accessibleGatewayIds = db
+      .select({ id: gateways.id })
+      .from(gateways)
+      .where(inArray(gateways.propertyId, filter.propertyIds));
+    conditions.push(
+      or(
+        inArray(devices.id, assignedDeviceIds),
+        inArray(devices.gatewayId, accessibleGatewayIds),
+      )!,
+    );
+  }
   return db
     .select()
     .from(devices)

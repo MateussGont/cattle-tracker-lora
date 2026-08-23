@@ -54,24 +54,48 @@ if (Test-DockerReady) {
 # 2. Infra: Postgres + Mosquitto -------------------------------------------
 Write-Step "Infraestrutura (PostgreSQL + Mosquitto)"
 Push-Location (Join-Path $root "infra")
-docker compose up -d
+$passwdFile = Join-Path $root "infra\mosquitto\passwd"
+if (-not (Test-Path $passwdFile)) {
+    Write-Host "Criando credencial MQTT local (gateway/change-me-local-mqtt)..."
+    docker run --rm -v "${PWD}/mosquitto:/mosquitto/config" eclipse-mosquitto:2 `
+        mosquitto_passwd -b -c /mosquitto/config/passwd gateway "change-me-local-mqtt"
+}
+docker compose up -d --wait --wait-timeout 60
 Pop-Location
 
-# 3. Backend -----------------------------------------------------------------
+# 3. Dependencias e ambiente -----------------------------------------------
+Write-Step "Dependencias e configuracao local"
+if (-not (Test-Path (Join-Path $root "backend\.env"))) {
+    Copy-Item (Join-Path $root "backend\.env.example") (Join-Path $root "backend\.env")
+    Write-Host "backend/.env criado a partir do exemplo." -ForegroundColor Yellow
+}
+if (-not (Test-Path (Join-Path $root "node_modules"))) {
+    Push-Location $root
+    npm install
+    Pop-Location
+}
+
+Write-Host "Aplicando migrations e seed idempotente..."
+Push-Location $root
+npm run db:migrate
+npm run db:seed
+Pop-Location
+
+# 4. Backend -----------------------------------------------------------------
 Write-Step "Backend (http://localhost:3000)"
 Start-Process powershell -ArgumentList @(
     "-NoExit", "-Command",
     "Set-Location '$root\backend'; Write-Host 'Backend - Cattle Tracker' -ForegroundColor Cyan; npm run dev"
 ) | Out-Null
 
-# 4. Frontend ------------------------------------------------------------
+# 5. Frontend ------------------------------------------------------------
 Write-Step "Frontend (http://localhost:5173)"
 Start-Process powershell -ArgumentList @(
     "-NoExit", "-Command",
     "Set-Location '$root\frontend'; Write-Host 'Frontend - Cattle Tracker' -ForegroundColor Cyan; npm run dev"
 ) | Out-Null
 
-# 5. Abrir o navegador --------------------------------------------------
+# 6. Abrir o navegador --------------------------------------------------
 Write-Step "Abrindo o navegador"
 Start-Sleep -Seconds 6
 Start-Process "http://localhost:5173"

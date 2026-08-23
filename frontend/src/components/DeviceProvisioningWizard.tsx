@@ -31,7 +31,7 @@ export function DeviceProvisioningWizard({ onClose }: { onClose: () => void }) {
 
   const [deviceIdentifier, setDeviceIdentifier] = useState("");
   const [hardwareModel, setHardwareModel] = useState("");
-  const [radioDeviceId, setRadioDeviceId] = useState(() => String(suggestNextRadioDeviceId(devices)));
+  const [radioDeviceId, setRadioDeviceId] = useState<string | null>(null);
   const [gatewayId, setGatewayId] = useState("");
   const [animalId, setAnimalId] = useState("");
 
@@ -46,14 +46,15 @@ export function DeviceProvisioningWizard({ onClose }: { onClose: () => void }) {
   const [configuring, setConfiguring] = useState(false);
   const [checkingStatus, setCheckingStatus] = useState(false);
 
-  const canAdvanceStep1 = deviceIdentifier.trim().length > 0 && radioDeviceId.trim().length > 0;
+  const effectiveRadioDeviceId = radioDeviceId ?? (devices ? String(suggestNextRadioDeviceId(devices)) : "");
+  const canAdvanceStep1 = deviceIdentifier.trim().length > 0 && effectiveRadioDeviceId.trim().length > 0;
 
   async function handleSaveAndAdvanceToUsbStep() {
     setCreateError(null);
     try {
       const device = await createDevice.mutateAsync({
         deviceIdentifier: deviceIdentifier.trim(),
-        radioDeviceId: Number(radioDeviceId),
+        radioDeviceId: Number(effectiveRadioDeviceId),
         hardwareModel: hardwareModel.trim() || undefined,
         gatewayId: gatewayId || undefined,
       });
@@ -150,7 +151,7 @@ export function DeviceProvisioningWizard({ onClose }: { onClose: () => void }) {
               required
               min={0}
               max={65535}
-              value={radioDeviceId}
+              value={effectiveRadioDeviceId}
               onChange={(event) => setRadioDeviceId(event.target.value)}
               className="mt-1 w-full rounded-md border border-slate-300 px-3 py-2 text-sm"
             />

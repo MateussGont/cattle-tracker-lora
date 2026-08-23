@@ -5,6 +5,7 @@ import {
   type AlertSeverity,
   type AlertType,
 } from "../repositories/alertsRepository.js";
+import { broadcast } from "../websocket/realtime.js";
 
 export interface RaiseAlertInput {
   type: AlertType;
@@ -30,7 +31,15 @@ export async function raiseAlertOnce(input: RaiseAlertInput) {
   if (existing) {
     return existing;
   }
-  return createAlert(input);
+  const alert = await createAlert(input);
+  if (alert) {
+    broadcast({
+      type: "alert_created",
+      propertyId: alert.propertyId,
+      payload: alert,
+    });
+  }
+  return alert;
 }
 
 export interface ClearAlertInput {

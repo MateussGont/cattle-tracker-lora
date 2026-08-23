@@ -4,6 +4,7 @@ import {
   boolean,
   customType,
   index,
+  integer,
   jsonb,
   pgEnum,
   pgTable,
@@ -157,7 +158,7 @@ export const gateways = pgTable("gateways", {
 export const devices = pgTable("devices", {
   id: uuid("id").primaryKey().defaultRandom(),
   deviceIdentifier: text("device_identifier").notNull(),
-  radioDeviceId: smallint("radio_device_id").notNull(),
+  radioDeviceId: integer("radio_device_id").notNull(),
   hardwareModel: text("hardware_model"),
   gatewayId: uuid("gateway_id").references(() => gateways.id, { onDelete: "set null" }),
   status: deviceStatusEnum("status").notNull().default("active"),

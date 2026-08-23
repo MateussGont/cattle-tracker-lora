@@ -1,4 +1,4 @@
-import { eq, sql } from "drizzle-orm";
+import { eq, inArray, sql } from "drizzle-orm";
 import { db } from "../db/client.js";
 import { alertRules, properties } from "../db/schema.js";
 import { parseGeoJson, pointToWkt, polygonToWkt, type LatLng } from "../utils/geo.js";
@@ -37,9 +37,12 @@ function withParsedGeometry<T extends { location: string | null; boundary: strin
 
 export async function listProperties(propertyIds?: string[]) {
   const query = db.select(propertyGeoJsonSelect).from(properties);
-  const rows = propertyIds && propertyIds.length > 0
-    ? await query.where(sql`${properties.id} = ANY(${propertyIds})`)
-    : await query;
+  if (propertyIds !== undefined && propertyIds.length === 0) {
+    return [];
+  }
+  const rows = propertyIds === undefined
+    ? await query
+    : await query.where(inArray(properties.id, propertyIds));
   return rows.map(withParsedGeometry);
 }
 

@@ -14,7 +14,11 @@ export async function telemetryRoutes(app: FastifyInstance): Promise<void> {
   app.post("/api/telemetry", { preHandler: authenticateGateway }, async (request, reply) => {
     const body = telemetrySchema.parse(request.body);
     const result = await ingestTelemetry(body);
-    broadcast({ type: "location_update", payload: { ...result, gatewayId: body.gatewayId } });
+    broadcast({
+      type: "location_update",
+      propertyId: result.propertyId,
+      payload: { ...result, gatewayId: body.gatewayId },
+    });
     return reply.code(201).send(result);
   });
 }

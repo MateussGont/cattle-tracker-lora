@@ -127,9 +127,12 @@ Exemplo de saída no serial do receptor:
 cd infra
 # gera o arquivo de senhas do Mosquitto (uma vez, antes do primeiro `up`)
 docker run --rm -v "${PWD}/mosquitto:/mosquitto/config" eclipse-mosquitto:2 \
-  mosquitto_passwd -b -c /mosquitto/config/passwd gateway "sua-senha-mqtt"
+  mosquitto_passwd -b -c /mosquitto/config/passwd gateway "change-me-local-mqtt"
+# No Linux, o arquivo é criado pelo root do container. Torne-o legível pelo
+# usuário `mosquitto` antes de subir a infraestrutura:
+docker run --rm -v "${PWD}/mosquitto:/work" alpine:3.22 chmod 0644 /work/passwd
 
-docker compose up -d
+docker compose up -d --wait --wait-timeout 60
 ```
 
 Isso sobe:
@@ -173,6 +176,12 @@ npm run dev             # http://localhost:5173
 npm test
 npm run build
 ```
+
+Os scripts `dev` e `build` geram automaticamente a imagem completa do colar
+em `frontend/public/firmware/collar-latest.bin` (bootloader, partições e
+aplicação) para o assistente Web Serial. Isso exige o PlatformIO disponível no
+`PATH`; também é possível gerar o artefato manualmente pela raiz com
+`npm run firmware:collar:sync`.
 
 Login inicial (criado pelo `npm run db:seed` do backend):
 `admin@cattletracker.local` / `ChangeMe123!` — troque a senha em produção.

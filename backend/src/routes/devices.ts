@@ -12,7 +12,8 @@ import {
   unassignDevice,
 } from "../repositories/deviceAssignmentsRepository.js";
 import { getStatusThresholds } from "../repositories/settingsRepository.js";
-import { authenticate } from "../middlewares/authenticate.js";
+import { accessiblePropertyIds, authenticate } from "../middlewares/authenticate.js";
+import { findGatewayById } from "../repositories/gatewaysRepository.js";
 import { computeCommunicationStatus } from "../services/statusService.js";
 
 export async function deviceRoutes(app: FastifyInstance): Promise<void> {
@@ -20,7 +21,11 @@ export async function deviceRoutes(app: FastifyInstance): Promise<void> {
 
   app.get("/api/devices", async (request) => {
     const query = listDevicesQuerySchema.parse(request.query);
-    const [thresholds, devices] = await Promise.all([getStatusThresholds(), listDevices(query)]);
+    const propertyIds = await accessiblePropertyIds(request);
+    const [thresholds, devices] = await Promise.all([
+      getStatusThresholds(),
+      listDevices({ ...query, propertyIds }),
+    ]);
     const assignments = await listCurrentAssignmentsForDevices(devices.map((device) => device.id));
     const animalByDevice = new Map(assignments.map((row) => [row.deviceId, row]));
     return devices.map((device) => {
@@ -51,6 +56,19 @@ export async function deviceRoutes(app: FastifyInstance): Promise<void> {
       return reply.code(404).send({ error: "not_found" });
     }
     const [thresholds, animal] = await Promise.all([getStatusThresholds(), findCurrentAnimalForDevice(id)]);
+    if (request.user.role !== "admin") {
+      const [propertyIds, gateway] = await Promise.all([
+        accessiblePropertyIds(request),
+        device.gatewayId ? findGatewayById(device.gatewayId) : Promise.resolve(null),
+      ]);
+      const canAccess = Boolean(
+        (animal && propertyIds?.includes(animal.propertyId)) ||
+        (gateway?.propertyId && propertyIds?.includes(gateway.propertyId)),
+      );
+      if (!canAccess) {
+        return reply.code(403).send({ error: "forbidden" });
+      }
+    }
     return {
       ...device,
       communicationStatus: computeCommunicationStatus(device.lastSeen, thresholds),

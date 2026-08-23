@@ -1,6 +1,8 @@
 import { ESPLoader, Transport } from "esptool-js";
 
 const FIRMWARE_URL = "/firmware/collar-latest.bin";
+// collar-latest.bin is a merged image containing bootloader, partitions,
+// boot_app0 and application at their proper offsets, so it starts at 0x0.
 const FLASH_ADDRESS = 0x0;
 const PROVISION_BAUD_RATE = 115200;
 

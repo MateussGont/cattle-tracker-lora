@@ -13,7 +13,12 @@ import {
   listAlertRulesByProperty,
   updateAlertRule,
 } from "../repositories/alertRulesRepository.js";
-import { accessiblePropertyIds, assertPropertyAccess, authenticate } from "../middlewares/authenticate.js";
+import {
+  accessiblePropertyIds,
+  assertPropertyAccess,
+  assertPropertyWriteAccess,
+  authenticate,
+} from "../middlewares/authenticate.js";
 
 export async function propertyRoutes(app: FastifyInstance): Promise<void> {
   app.addHook("preHandler", authenticate);
@@ -51,7 +56,7 @@ export async function propertyRoutes(app: FastifyInstance): Promise<void> {
 
   app.post("/api/properties/:id/geofences", async (request, reply) => {
     const { id } = request.params as { id: string };
-    if (!(await assertPropertyAccess(request, id))) {
+    if (!(await assertPropertyWriteAccess(request, id))) {
       return reply.code(403).send({ error: "forbidden" });
     }
     const body = createGeofenceSchema.parse(request.body);
@@ -61,7 +66,7 @@ export async function propertyRoutes(app: FastifyInstance): Promise<void> {
 
   app.delete("/api/properties/:id/geofences/:geofenceId", async (request, reply) => {
     const { id, geofenceId } = request.params as { id: string; geofenceId: string };
-    if (!(await assertPropertyAccess(request, id))) {
+    if (!(await assertPropertyWriteAccess(request, id))) {
       return reply.code(403).send({ error: "forbidden" });
     }
     const deleted = await deleteGeofence(id, geofenceId);
@@ -79,7 +84,7 @@ export async function propertyRoutes(app: FastifyInstance): Promise<void> {
 
   app.post("/api/properties/:id/alert-rules", async (request, reply) => {
     const { id } = request.params as { id: string };
-    if (!(await assertPropertyAccess(request, id))) {
+    if (!(await assertPropertyWriteAccess(request, id))) {
       return reply.code(403).send({ error: "forbidden" });
     }
     const body = createAlertRuleSchema.parse(request.body);
@@ -89,7 +94,7 @@ export async function propertyRoutes(app: FastifyInstance): Promise<void> {
 
   app.put("/api/properties/:id/alert-rules/:ruleId", async (request, reply) => {
     const { id, ruleId } = request.params as { id: string; ruleId: string };
-    if (!(await assertPropertyAccess(request, id))) {
+    if (!(await assertPropertyWriteAccess(request, id))) {
       return reply.code(403).send({ error: "forbidden" });
     }
     const body = updateAlertRuleSchema.parse(request.body);
@@ -100,7 +105,7 @@ export async function propertyRoutes(app: FastifyInstance): Promise<void> {
 
   app.delete("/api/properties/:id/alert-rules/:ruleId", async (request, reply) => {
     const { id, ruleId } = request.params as { id: string; ruleId: string };
-    if (!(await assertPropertyAccess(request, id))) {
+    if (!(await assertPropertyWriteAccess(request, id))) {
       return reply.code(403).send({ error: "forbidden" });
     }
     const deleted = await deleteAlertRule(id, ruleId);

@@ -6,6 +6,7 @@ const WS_URL = import.meta.env.VITE_WS_URL ?? "ws://localhost:3000/ws";
 
 interface RealtimeEvent {
   type: "location_update" | "alert_created";
+  propertyId: string | null;
   payload: Record<string, unknown>;
 }
 

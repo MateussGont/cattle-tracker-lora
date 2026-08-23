@@ -24,6 +24,7 @@ export interface TelemetryResult {
   deviceId: string;
   deviceIdentifier: string;
   animalId: string | null;
+  propertyId: string | null;
   hasFix: boolean;
   latitude: number | null;
   longitude: number | null;
@@ -82,6 +83,7 @@ export async function ingestTelemetry(input: TelemetryInput): Promise<TelemetryR
     deviceId: device.id,
     deviceIdentifier: device.deviceIdentifier,
     animalId: animal?.id ?? null,
+    propertyId: animal?.propertyId ?? null,
     hasFix,
     latitude: hasFix ? input.latitude : null,
     longitude: hasFix ? input.longitude : null,

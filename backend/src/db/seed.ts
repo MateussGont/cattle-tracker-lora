@@ -1,5 +1,5 @@
 import argon2 from "argon2";
-import { sql } from "drizzle-orm";
+import { and, eq, isNull, sql } from "drizzle-orm";
 import { db, closeDb } from "./client.js";
 import {
   animals,
@@ -32,7 +32,7 @@ const DEFAULT_SETTINGS: Array<{ key: string; value: unknown; description: string
 async function main(): Promise<void> {
   const passwordHash = await argon2.hash("ChangeMe123!");
 
-  const [admin] = await db
+  await db
     .insert(users)
     .values({
       name: "Administrador",
@@ -41,31 +41,35 @@ async function main(): Promise<void> {
       role: "admin",
       status: "active",
     })
-    .returning();
+    .onConflictDoNothing({ target: users.email });
+
+  const [admin] = await db.select().from(users).where(eq(users.email, "admin@cattletracker.local")).limit(1);
 
   if (!admin) {
     throw new Error("Failed to seed admin user");
   }
 
-  const [property] = await db
-    .insert(properties)
-    .values({
-      name: "Fazenda Modelo",
-      location: sql`ST_SetSRID(ST_MakePoint(-44.012345, -19.923456), 4326)::geography`,
-      boundary: sql`ST_SetSRID(ST_GeomFromText('POLYGON((-44.02 -19.93, -44.00 -19.93, -44.00 -19.91, -44.02 -19.91, -44.02 -19.93))'), 4326)`,
-      areaHectares: 400,
-    })
-    .returning();
+  let [property] = await db.select().from(properties).where(eq(properties.name, "Fazenda Modelo")).limit(1);
+  if (!property) {
+    [property] = await db
+      .insert(properties)
+      .values({
+        name: "Fazenda Modelo",
+        location: sql`ST_SetSRID(ST_MakePoint(-44.012345, -19.923456), 4326)::geography`,
+        boundary: sql`ST_SetSRID(ST_GeomFromText('POLYGON((-44.02 -19.93, -44.00 -19.93, -44.00 -19.91, -44.02 -19.91, -44.02 -19.93))'), 4326)`,
+        areaHectares: 400,
+      })
+      .returning();
+  }
 
   if (!property) {
     throw new Error("Failed to seed property");
   }
 
-  await db.insert(userProperties).values({
-    userId: admin.id,
-    propertyId: property.id,
-    roleOnProperty: "admin",
-  });
+  await db
+    .insert(userProperties)
+    .values({ userId: admin.id, propertyId: property.id, roleOnProperty: "admin" })
+    .onConflictDoNothing();
 
   const seedAnimals = [
     { tagCode: "BOV-0001", name: "Boi 102", radioDeviceId: 1, deviceIdentifier: "BRINCO-0001" },
@@ -74,7 +78,7 @@ async function main(): Promise<void> {
   ];
 
   for (const seedAnimal of seedAnimals) {
-    const [animal] = await db
+    await db
       .insert(animals)
       .values({
         tagCode: seedAnimal.tagCode,
@@ -83,13 +87,15 @@ async function main(): Promise<void> {
         status: "active",
         propertyId: property.id,
       })
-      .returning();
+      .onConflictDoNothing({ target: animals.tagCode });
+
+    const [animal] = await db.select().from(animals).where(eq(animals.tagCode, seedAnimal.tagCode)).limit(1);
 
     if (!animal) {
       throw new Error(`Failed to seed animal ${seedAnimal.tagCode}`);
     }
 
-    const [device] = await db
+    await db
       .insert(devices)
       .values({
         deviceIdentifier: seedAnimal.deviceIdentifier,
@@ -97,16 +103,30 @@ async function main(): Promise<void> {
         hardwareModel: "XIAO ESP32-S3 + Wio-SX1262",
         status: "active",
       })
-      .returning();
+      .onConflictDoNothing();
+
+    const [device] = await db
+      .select()
+      .from(devices)
+      .where(eq(devices.deviceIdentifier, seedAnimal.deviceIdentifier))
+      .limit(1);
 
     if (!device) {
       throw new Error(`Failed to seed device ${seedAnimal.deviceIdentifier}`);
     }
 
-    await db.insert(deviceAssignments).values({
-      deviceId: device.id,
-      animalId: animal.id,
-    });
+    const [assignment] = await db
+      .select({ deviceId: deviceAssignments.deviceId })
+      .from(deviceAssignments)
+      .where(and(
+        eq(deviceAssignments.deviceId, device.id),
+        eq(deviceAssignments.animalId, animal.id),
+        isNull(deviceAssignments.unassignedAt),
+      ))
+      .limit(1);
+    if (!assignment) {
+      await db.insert(deviceAssignments).values({ deviceId: device.id, animalId: animal.id });
+    }
   }
 
   await db

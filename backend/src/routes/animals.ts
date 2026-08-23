@@ -14,28 +14,39 @@ import {
   updateAnimal,
 } from "../repositories/animalsRepository.js";
 import {
+  findCurrentAnimalForDevice,
   findCurrentDeviceForAnimal,
   listAssignmentHistoryByAnimal,
 } from "../repositories/deviceAssignmentsRepository.js";
 import { findLatestLocationByAnimal, listLocationHistoryByAnimal } from "../repositories/locationsRepository.js";
-import { accessiblePropertyIds, assertPropertyAccess, authenticate } from "../middlewares/authenticate.js";
+import {
+  accessiblePropertyIds,
+  assertPropertyAccess,
+  assertPropertyWriteAccess,
+  authenticate,
+} from "../middlewares/authenticate.js";
 import {
   associateDeviceWithAnimal,
   dissociateDeviceFromAnimal,
 } from "../services/deviceAssignmentService.js";
+import { findDeviceById } from "../repositories/devicesRepository.js";
+import { findGatewayById } from "../repositories/gatewaysRepository.js";
 
 export async function animalRoutes(app: FastifyInstance): Promise<void> {
   app.addHook("preHandler", authenticate);
 
-  app.get("/api/animals", async (request) => {
+  app.get("/api/animals", async (request, reply) => {
     const query = listAnimalsQuerySchema.parse(request.query);
     const propertyIds = await accessiblePropertyIds(request);
+    if (query.propertyId && propertyIds !== undefined && !propertyIds.includes(query.propertyId)) {
+      return reply.code(403).send({ error: "forbidden", message: "Sem acesso a esta propriedade." });
+    }
     return listAnimals({ ...query, propertyIds });
   });
 
   app.post("/api/animals", async (request, reply) => {
     const body = createAnimalSchema.parse(request.body);
-    if (!(await assertPropertyAccess(request, body.propertyId))) {
+    if (!(await assertPropertyWriteAccess(request, body.propertyId))) {
       return reply.code(403).send({ error: "forbidden", message: "Sem acesso a esta propriedade." });
     }
     const animal = await createAnimal(body);
@@ -61,10 +72,13 @@ export async function animalRoutes(app: FastifyInstance): Promise<void> {
     if (!animal) {
       return reply.code(404).send({ error: "not_found" });
     }
-    if (!(await assertPropertyAccess(request, animal.propertyId))) {
+    if (!(await assertPropertyWriteAccess(request, animal.propertyId))) {
       return reply.code(403).send({ error: "forbidden" });
     }
     const body = updateAnimalSchema.parse(request.body);
+    if (body.propertyId && !(await assertPropertyWriteAccess(request, body.propertyId))) {
+      return reply.code(403).send({ error: "forbidden", message: "Sem acesso de escrita à propriedade de destino." });
+    }
     return updateAnimal(id, body);
   });
 
@@ -74,7 +88,7 @@ export async function animalRoutes(app: FastifyInstance): Promise<void> {
     if (!animal) {
       return reply.code(404).send({ error: "not_found" });
     }
-    if (!(await assertPropertyAccess(request, animal.propertyId))) {
+    if (!(await assertPropertyWriteAccess(request, animal.propertyId))) {
       return reply.code(403).send({ error: "forbidden" });
     }
     await deactivateAnimal(id);
@@ -113,10 +127,25 @@ export async function animalRoutes(app: FastifyInstance): Promise<void> {
     if (!animal) {
       return reply.code(404).send({ error: "not_found" });
     }
-    if (!(await assertPropertyAccess(request, animal.propertyId))) {
+    if (!(await assertPropertyWriteAccess(request, animal.propertyId))) {
       return reply.code(403).send({ error: "forbidden" });
     }
     const body = assignDeviceSchema.parse(request.body);
+    if (request.user.role !== "admin") {
+      const device = await findDeviceById(body.deviceId);
+      if (!device) {
+        return reply.code(404).send({ error: "not_found", message: "Dispositivo não encontrado." });
+      }
+      const [currentAnimal, gateway] = await Promise.all([
+        findCurrentAnimalForDevice(device.id),
+        device.gatewayId ? findGatewayById(device.gatewayId) : Promise.resolve(null),
+      ]);
+      const belongsToProperty =
+        currentAnimal?.propertyId === animal.propertyId || gateway?.propertyId === animal.propertyId;
+      if (!belongsToProperty) {
+        return reply.code(403).send({ error: "forbidden", message: "Dispositivo fora do escopo desta propriedade." });
+      }
+    }
     const assignment = await associateDeviceWithAnimal(id, body.deviceId);
     return reply.code(201).send(assignment);
   });
@@ -127,7 +156,7 @@ export async function animalRoutes(app: FastifyInstance): Promise<void> {
     if (!animal) {
       return reply.code(404).send({ error: "not_found" });
     }
-    if (!(await assertPropertyAccess(request, animal.propertyId))) {
+    if (!(await assertPropertyWriteAccess(request, animal.propertyId))) {
       return reply.code(403).send({ error: "forbidden" });
     }
     const device = await findCurrentDeviceForAnimal(id);
