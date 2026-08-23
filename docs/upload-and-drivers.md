@@ -44,8 +44,15 @@ Os drivers de rádio não precisam ser instalados manualmente no sistema operaci
 
 - RadioLib
 - TinyGPSPlus
+- PubSubClient (MQTT, apenas no ambiente `receiver_heltec_v2`)
+- ArduinoJson (apenas no ambiente `receiver_heltec_v2`)
 
 Essas dependências são declaradas em `platformio.ini` e serão resolvidas automaticamente na primeira compilação.
+
+O ambiente `receiver_heltec_v2` também exige `firmware/receiver/secrets.h`
+(copie de `secrets.h.example` e preencha com as credenciais de Wi-Fi e do
+broker MQTT) — sem esse arquivo a compilação falha por header ausente, de
+propósito, para não haver credencial hardcoded no código versionado.
 
 ## 4. Fluxo recomendado para upload
 

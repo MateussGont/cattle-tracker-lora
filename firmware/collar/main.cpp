@@ -1,4 +1,5 @@
 #include <Arduino.h>
+#include <Preferences.h>
 #include <RadioLib.h>
 #include <SPI.h>
 #include <TinyGPSPlus.h>
@@ -7,7 +8,6 @@
 
 namespace {
 
-constexpr std::uint16_t kDeviceId = 1;
 constexpr unsigned long kSendIntervalMs = 10000;
 constexpr unsigned long kGnssReadWindowMs = 2500;
 
@@ -23,14 +23,26 @@ constexpr int kLoRaRfSwitch = 38;
 constexpr int kGnssRx = 43;  // XIAO D7, connect to GNSS TX.
 constexpr int kGnssTx = 44;  // XIAO D6, connect to GNSS RX (optional).
 constexpr std::uint32_t kGnssBaud = 9600;
-constexpr std::size_t kMaxGnssLineLength = 128;
+
+// Identity (radioDeviceId) is provisioned at first-use over USB serial, not
+// baked into the firmware image at compile time. This lets a single generic
+// binary be flashed once per hardware batch, with each physical unit
+// getting its number assigned later through the app's provisioning wizard
+// (see docs/architecture.md, "Provisionamento de dispositivos"). See
+// tryHandleSerialCommand() below for the wire protocol.
+constexpr const char* kPrefsNamespace = "cattle";
+constexpr const char* kPrefsKeyRadioId = "radioId";
+constexpr unsigned long kUnprovisionedNoticeIntervalMs = 2000;
 
 SX1262 radio = new Module(kLoRaNss, kLoRaDio1, kLoRaReset, kLoRaBusy);
 TinyGPSPlus gps;
 HardwareSerial gnssSerial(1);
+Preferences preferences;
 std::uint32_t sequenceNumber = 0;
-char gnssLineBuffer[kMaxGnssLineLength] = {};
-std::size_t gnssLineLength = 0;
+
+std::uint16_t deviceId = 0;
+bool provisioned = false;
+unsigned long lastUnprovisionedNoticeMs = 0;
 
 std::int64_t daysFromCivil(int year, unsigned month, unsigned day) {
   year -= month <= 2;
@@ -42,21 +54,6 @@ std::int64_t daysFromCivil(int year, unsigned month, unsigned day) {
   const unsigned dayOfEra =
       yearOfEra * 365U + yearOfEra / 4U - yearOfEra / 100U + dayOfYear;
   return static_cast<std::int64_t>(era) * 146097 + dayOfEra - 719468;
-}
-
-void logGnssLine(char c) {
-  if (gnssLineLength < kMaxGnssLineLength - 1) {
-    gnssLineBuffer[gnssLineLength++] = c;
-  }
-
-  if (c == '\n') {
-    gnssLineBuffer[gnssLineLength] = '\0';
-    if (gnssLineLength > 1) {
-      Serial.print("gps_nmea:");
-      Serial.print(gnssLineBuffer);
-    }
-    gnssLineLength = 0;
-  }
 }
 
 std::uint32_t gnssUnixTime() {
@@ -74,20 +71,15 @@ std::uint32_t gnssUnixTime() {
 
 cattle_tracker::LocationData readLocation() {
   const unsigned long startedAt = millis();
-  std::uint32_t gnssByteCount = 0;
   while (millis() - startedAt < kGnssReadWindowMs) {
     while (gnssSerial.available() > 0) {
-      const char c = static_cast<char>(gnssSerial.read());
-      gps.encode(c);
-      logGnssLine(c);
-      ++gnssByteCount;
-      //Serial.printf("gps_serial: %c\n", c);
+      gps.encode(static_cast<char>(gnssSerial.read()));
     }
     delay(2);
   }
 
   cattle_tracker::LocationData location;
-  location.deviceId = kDeviceId;
+  location.deviceId = deviceId;
   location.sequence = ++sequenceNumber;
 
   if (gps.location.isValid() && gps.location.age() < 5000) {
@@ -105,13 +97,6 @@ cattle_tracker::LocationData readLocation() {
 
   // The XIAO ESP32-S3 does not expose battery measurement by default.
   location.batteryMv = 0;
-  Serial.printf(
-      "gps_bytes=%lu gps_valid=%u sat=%d age=%lu date_valid=%u time_valid=%u chars=%lu sentences_with_fix=%d\n",
-      static_cast<unsigned long>(gnssByteCount),
-      gps.location.isValid(), gps.satellites.value(),
-      static_cast<unsigned long>(gps.location.age()), gps.date.isValid(),
-      gps.time.isValid(), static_cast<unsigned long>(gps.charsProcessed()),
-      gps.sentencesWithFix());
   return location;
 }
 
@@ -122,11 +107,60 @@ void stopWithRadioError(const char* operation, int16_t state) {
   }
 }
 
+/**
+ * Text line protocol over USB serial (115200 8N1), used by the app's
+ * device-provisioning wizard:
+ *   "SET_RADIO_ID <0-65535>"  -> stores the id in NVS, replies
+ *                                 {"event":"provisioned","radioDeviceId":N}
+ *   "GET_STATUS"              -> replies {"event":"status", ...} without
+ *                                 changing anything, so the app can check
+ *                                 what a plugged-in unit is already set to.
+ * Accepted at any time (not just first boot), so re-assigning a collar to a
+ * different animal later is just sending SET_RADIO_ID again — no reflash.
+ */
+bool tryHandleSerialCommand() {
+  if (!Serial.available()) {
+    return false;
+  }
+
+  String line = Serial.readStringUntil('\n');
+  line.trim();
+  if (line.length() == 0) {
+    return false;
+  }
+
+  if (line == "GET_STATUS") {
+    Serial.printf(
+        "{\"event\":\"status\",\"provisioned\":%s,\"radioDeviceId\":%u}\n",
+        provisioned ? "true" : "false", deviceId);
+    return true;
+  }
+
+  unsigned int parsedId = 0;
+  if (sscanf(line.c_str(), "SET_RADIO_ID %u", &parsedId) == 1 && parsedId <= 0xFFFF) {
+    deviceId = static_cast<std::uint16_t>(parsedId);
+    preferences.putUShort(kPrefsKeyRadioId, deviceId);
+    provisioned = true;
+    Serial.printf("{\"event\":\"provisioned\",\"radioDeviceId\":%u}\n", deviceId);
+    return true;
+  }
+
+  Serial.println(
+      "{\"event\":\"provision_error\",\"message\":\"expected 'SET_RADIO_ID <0-65535>' or 'GET_STATUS'\"}");
+  return false;
+}
+
 }  // namespace
 
 void setup() {
   Serial.begin(115200);
   delay(1500);
+
+  preferences.begin(kPrefsNamespace, false);
+  provisioned = preferences.isKey(kPrefsKeyRadioId);
+  if (provisioned) {
+    deviceId = preferences.getUShort(kPrefsKeyRadioId, 0);
+  }
 
   gnssSerial.begin(kGnssBaud, SERIAL_8N1, kGnssRx, kGnssTx);
   SPI.begin(kLoRaSck, kLoRaMiso, kLoRaMosi, kLoRaNss);
@@ -142,9 +176,27 @@ void setup() {
   }
 
   Serial.println("collar ready: XIAO ESP32-S3 + Wio-SX1262");
+  Serial.printf(
+      "{\"event\":\"boot\",\"provisioned\":%s,\"radioDeviceId\":%u}\n",
+      provisioned ? "true" : "false", deviceId);
 }
 
 void loop() {
+  tryHandleSerialCommand();
+
+  if (!provisioned) {
+    // Nothing to transmit yet: no radioDeviceId has been assigned to this
+    // physical unit. Idle and keep announcing readiness so the app's
+    // provisioning wizard can confirm it is talking to the right port.
+    const unsigned long now = millis();
+    if (now - lastUnprovisionedNoticeMs >= kUnprovisionedNoticeIntervalMs) {
+      lastUnprovisionedNoticeMs = now;
+      Serial.println("{\"event\":\"awaiting_provisioning\"}");
+    }
+    delay(50);
+    return;
+  }
+
   const cattle_tracker::LocationData location = readLocation();
   std::uint8_t payload[cattle_tracker::kEncodedLocationSize] = {};
   if (!cattle_tracker::encodeLocation(location, payload, sizeof(payload))) {
