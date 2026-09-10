@@ -1,276 +1,296 @@
-# Planejamento semanal — piloto até fevereiro de 2027
+# Planejamento semanal — PCB v1 e piloto até fevereiro de 2027
 
 ## Compromisso e capacidade
 
-Meta confirmada: **piloto validado até 28/02/2027**, com **5 horas semanais no total da equipe**. Início planejado: **14/09/2026**, primeira segunda-feira completa após a definição do prazo. São **24 semanas × 5 h = 120 horas-pessoa**. A organização já entregue até 10/09 não foi debitada novamente deste orçamento.
+**Meta confirmada: PCB v1 do brinco fabricada, montada e testada, junto com piloto validado até 28/02/2027. Capacidade: 6 horas semanais no total da equipe.** Esta revisão substitui o plano anterior de 5 h que deixava a PCB para depois.
 
-O plano compromete **105 h em 21 semanas de trabalho** e protege **15 h em três semanas de reserva** (S15, S16 e S23). As semanas de Natal/Ano-Novo continuam dentro do teto, mas não recebem entregas novas: se a equipe não trabalhar nelas, consomem 10 h da margem de disponibilidade e restam 5 h de reserva. Não redistribuir automaticamente essas horas para criar semanas acima de 5 h.
+De **14/09/2026 a 28/02/2027** são **24 semanas × 6 h = 144 horas-pessoa**: **126 h em 21 semanas de entregas + 18 h em três semanas de reserva** (S15, S16 e S23). A organização já publicada não é debitada novamente. As reservas de Natal/Ano-Novo são também margem de disponibilidade: se forem recesso, restam **132 h disponíveis e 6 h de reserva**. Não exceder 6 h em outra semana para compensar.
 
-Padrão de uma semana de trabalho: **3 h de execução/preparo + 1,5 h de testes/revisão + 0,5 h de registro/replanejamento = 5 h**. Em semanas de ensaio, redistribuir internamente entre preparação, inspeções e análise. Instalação/preparo do ambiente, leitura, reuniões, montagem, retrabalho, deslocamento, recarga e suporte entram nesse mesmo teto. Duas pessoas em uma reunião de 30 minutos consomem 1 hora-pessoa.
+| Alocação principal | Semanas | Horas |
+| --- | --- | ---: |
+| Preparação | S01 | 6 |
+| Firmware, web e integração | S02–S07, S13–S14, S18 | 54 |
+| Energia, RF e mecânica antes da PCB | S08–S09 | 12 |
+| Esquema, layout, revisão/fabricação e montagem | S10–S12, S17 | 24 |
+| Bancada do lote e aprovação para campo | S19–S20 | 12 |
+| Duas rodadas de campo | S21–S22 | 12 |
+| Documentação e aceite | S24 | 6 |
+| Reservas | S15–S16, S23 | 18 |
+| **Total** | **24 semanas** | **144** |
 
-Ensaios de 2 h/24 h medem tempo decorrido. Só o trecho realmente automatizado e sem dedicação humana fica fora do esforço ativo; qualquer supervisão necessária entra nas 5 h. O plano não pressupõe horas extras ou alguém trabalhando gratuitamente fora da conta.
+Padrão semanal: **4 h de execução/preparo + 1,5 h de validação/revisão + 0,5 h de registro = 6 h**. Nas semanas com orçamento interno específico e nos ensaios, redistribuir dentro desse teto. Instalação de ambiente, aprendizado, leitura, reuniões, revisões de terceiros da equipe, montagem, acompanhamento de fornecedor, deslocamentos, recargas e suporte contam. Duas pessoas em reunião de 30 minutos consomem 1 hora-pessoa.
 
-## Entrega de fevereiro e limites
+As horas são uma alocação de capacidade, não uma estimativa comprovada de conclusão. A PCB parte de fontes CAD ainda não encontradas no repositório. A previsão exige executor com experiência, revisor disponível, montagem simples e módulos já conhecidos. Validar as estimativas na S01; esforço externo contratado também deve ser explicitado, sem presumir ajuda fora da conta.
 
-Para caber nesse orçamento, o alvo de planejamento é **cinco brincos, um gateway, uma propriedade e um ambiente restrito ao piloto**, usando módulos e invólucro existentes. A unidade física e o animal ficam associados de forma fixa durante os ensaios. O resultado central é cadastrar, configurar, receber e rastrear dados com identidade e horários corretos, medir confiabilidade e registrar o desempenho físico.
+## O que será entregue
 
-O piloto terá **duas rodadas em dias distintos**, com **pelo menos 4 h de coleta por unidade em cada rodada**, após 24 h de bancada. O Gate C confirma a duração, supervisão e rotina de energia compatíveis com o hardware e as 5 h de trabalho ativo. Se quatro horas de coleta exigirem quatro horas de supervisão presencial, isso será debitado integralmente; deslocamentos e demais tarefas podem exigir replanejar o escopo ou o prazo. Não prometer operação contínua por semanas sem medir autonomia.
+Alvo: **cinco brincos com PCB v1 própria, um gateway e uma propriedade**, em ambiente restrito ao piloto. Para esta v1, adota-se como premissa de planejamento uma **placa de integração dos módulos existentes** de processamento, LoRa e GNSS, com alimentação/proteção, medição de bateria, conectores e pontos de teste. A seleção exata será congelada após os ensaios. Não pressupõe projeto RF com chips discretos nem miniaturização final.
 
-Esta é uma previsão com orçamento fixo, não evidência de que todos os defeitos cabem nas estimativas. A montagem, os dois builds e os fluxos integrados ainda precisam ser reproduzidos. A margem é pequena para retrabalho de hardware: validar a premissa de módulos/invólucro utilizáveis na S01. Se o protótipo não for adequado ao animal, o trabalho continua em bancada até aprovação física; não trocar a palavra bancada por piloto validado para cumprir a data.
+PCB pronta significa placa física funcional e testada, com fontes editáveis e pacote de fabricação, conforme o [plano e aceite da PCB v1](plano-pcb-v1.md). Apenas esquema, renderização, Gerbers ou placa sem teste não satisfazem a entrega. O piloto deverá usar a v1; o protótipo modular serve à redução de risco antes da fabricação.
 
-Ficam fora do compromisso de fevereiro: expansão para 10–25 unidades, vários gateways, PCB própria, desenho industrial, certificação de produto completo, autonomia comercial, redesign amplo, operação multi-instância e preparação integral de produção. Alertas/geofences, histórico completo de trocas de animal, paginação em larga escala e provisionamento em lote não são critérios deste piloto; suas limitações devem aparecer no relatório e não podem ser apresentadas como validadas. Requisitos físicos e aplicáveis ao hardware necessário ao ensaio continuam sendo bloqueadores de entrada em campo.
+As cinco unidades passam por **24 h de bancada**, depois **duas rodadas de campo em dias distintos, com pelo menos 4 h de coleta por unidade em cada rodada**. Supervisão necessária é esforço ativo; somente a coleta automatizada sem dedicação fica fora das horas-pessoa. Deslocamento, manejo e inspeções devem caber nas 6 h de cada semana de campo. Associações entre animal e unidade permanecem fixas.
+
+Ficam para a evolução posterior: 10–25 unidades, vários gateways, PCB do gateway, RF discreto, desenho industrial final, certificação completa de produto, autonomia comercial, redesign amplo, operação multi-instância e produção completa. Alertas/geofences, histórico completo de troca de animais, paginação em grande escala e provisionamento em lote permanecem fora do aceite. Os requisitos físicos e os requisitos aplicáveis ao hardware utilizado no ensaio continuam obrigatórios.
 
 ## Calendário semanal
 
-Cada linha é um bloco de **5 h para a equipe inteira**. Quando há várias issues na mesma linha, elas compartilham as cinco horas; não são cinco horas para cada issue. As datas são a previsão do recorte semanal, não o encerramento automático de uma issue que contenha escopo maior.
+Cada linha soma **6 h da equipe inteira**, compartilhadas entre todas as referências. Uma entrega parcial não encerra uma issue cujo escopo seja maior. Uma entrega principal em andamento por vez.
 
 | Semana | Período | Horas | Foco e entrega | Referências |
 | --- | --- | ---: | --- | --- |
-| S01 | 14/09/2026–20/09/2026 | 5 | **Preparar ambiente, materiais e escopo** | [lora #3](https://github.com/MateussGont/cattle-tracker-lora/issues/3), [lora #7](https://github.com/MateussGont/cattle-tracker-lora/issues/7), [lora #8](https://github.com/MateussGont/cattle-tracker-lora/issues/8), [web #20](https://github.com/MateussGont/cattle-tracker-web/issues/20) |
-| S02 | 21/09/2026–27/09/2026 | 5 | **Corrigir segurança básica da aplicação** | [web #7](https://github.com/MateussGont/cattle-tracker-web/issues/7), [web #8](https://github.com/MateussGont/cattle-tracker-web/issues/8) |
-| S03 | 28/09/2026–04/10/2026 | 5 | **Validar GNSS e ligação elétrica** | [lora #26](https://github.com/MateussGont/cattle-tracker-lora/issues/26), [lora #7](https://github.com/MateussGont/cattle-tracker-lora/issues/7) |
-| S04 | 05/10/2026–11/10/2026 | 5 | **Corrigir provisionamento no firmware** | [lora #27](https://github.com/MateussGont/cattle-tracker-lora/issues/27) |
-| S05 | 12/10/2026–18/10/2026 | 5 | **Corrigir cadastro USB no aplicativo** | [web #18](https://github.com/MateussGont/cattle-tracker-web/issues/18), [web #4](https://github.com/MateussGont/cattle-tracker-web/issues/4), [lora #25](https://github.com/MateussGont/cattle-tracker-lora/issues/25) |
-| S06 | 19/10/2026–25/10/2026 | 5 | **Corrigir propriedade e acesso ao dispositivo** | [web #13](https://github.com/MateussGont/cattle-tracker-web/issues/13), [web #12](https://github.com/MateussGont/cattle-tracker-web/issues/12) |
-| S07 | 26/10/2026–01/11/2026 | 5 | **Definir identidade de evento após reinício** | [lora #29](https://github.com/MateussGont/cattle-tracker-lora/issues/29), [web #1](https://github.com/MateussGont/cattle-tracker-web/issues/1) |
-| S08 | 02/11/2026–08/11/2026 | 5 | **Corrigir tempo, ordenação e duplicatas** | [web #9](https://github.com/MateussGont/cattle-tracker-web/issues/9), [web #1](https://github.com/MateussGont/cattle-tracker-web/issues/1) |
-| S09 | 09/11/2026–15/11/2026 | 5 | **Tornar a ingestão recuperável** | [web #10](https://github.com/MateussGont/cattle-tracker-web/issues/10) |
-| S10 | 16/11/2026–22/11/2026 | 5 | **Gate A: validar uma unidade ponta a ponta** | [lora #9](https://github.com/MateussGont/cattle-tracker-lora/issues/9), [web #12](https://github.com/MateussGont/cattle-tracker-web/issues/12) |
-| S11 | 23/11/2026–29/11/2026 | 5 | **Separar recepção LoRa e publicação** | [lora #5](https://github.com/MateussGont/cattle-tracker-lora/issues/5) |
-| S12 | 30/11/2026–06/12/2026 | 5 | **Recuperar falhas de Wi-Fi e MQTT** | [lora #12](https://github.com/MateussGont/cattle-tracker-lora/issues/12) |
-| S13 | 07/12/2026–13/12/2026 | 5 | **Ajustar cadência e preparar métricas** | [lora #28](https://github.com/MateussGont/cattle-tracker-lora/issues/28), [lora #4](https://github.com/MateussGont/cattle-tracker-lora/issues/4), [lora #11](https://github.com/MateussGont/cattle-tracker-lora/issues/11) |
-| S14 | 14/12/2026–20/12/2026 | 5 | **Montar e identificar cinco unidades** | [lora #7](https://github.com/MateussGont/cattle-tracker-lora/issues/7), [lora #10](https://github.com/MateussGont/cattle-tracker-lora/issues/10), [lora #18](https://github.com/MateussGont/cattle-tracker-lora/issues/18) |
-| S15 | 21/12/2026–27/12/2026 | 5 | **Reserva de fim de ano** | Contingência; sem nova funcionalidade |
-| S16 | 28/12/2026–03/01/2027 | 5 | **Reserva de fim de ano** | Contingência; sem nova funcionalidade |
-| S17 | 04/01/2027–10/01/2027 | 5 | **Gate B: cinco unidades por 24 h em bancada** | [lora #10](https://github.com/MateussGont/cattle-tracker-lora/issues/10), [lora #11](https://github.com/MateussGont/cattle-tracker-lora/issues/11), [lora #7](https://github.com/MateussGont/cattle-tracker-lora/issues/7) |
-| S18 | 11/01/2027–17/01/2027 | 5 | **Medir autonomia e qualificar o protótipo físico** | [lora #6](https://github.com/MateussGont/cattle-tracker-lora/issues/6), [lora #18](https://github.com/MateussGont/cattle-tracker-lora/issues/18), [lora #21](https://github.com/MateussGont/cattle-tracker-lora/issues/21) |
-| S19 | 18/01/2027–24/01/2027 | 5 | **Gate C: autorizar entrada no campo** | [lora #19](https://github.com/MateussGont/cattle-tracker-lora/issues/19), [lora #22](https://github.com/MateussGont/cattle-tracker-lora/issues/22), [lora #18](https://github.com/MateussGont/cattle-tracker-lora/issues/18), [lora #21](https://github.com/MateussGont/cattle-tracker-lora/issues/21) |
-| S20 | 25/01/2027–31/01/2027 | 5 | **Piloto de campo — primeira rodada** | [lora #22](https://github.com/MateussGont/cattle-tracker-lora/issues/22), [lora #11](https://github.com/MateussGont/cattle-tracker-lora/issues/11) |
-| S21 | 01/02/2027–07/02/2027 | 5 | **Piloto de campo — segunda rodada** | [lora #22](https://github.com/MateussGont/cattle-tracker-lora/issues/22), [lora #11](https://github.com/MateussGont/cattle-tracker-lora/issues/11) |
-| S22 | 08/02/2027–14/02/2027 | 5 | **Corrigir bloqueadores e repetir o cenário afetado** | [lora #22](https://github.com/MateussGont/cattle-tracker-lora/issues/22) |
-| S23 | 15/02/2027–21/02/2027 | 5 | **Reserva final de validação** | Contingência; sem nova funcionalidade |
-| S24 | 22/02/2027–28/02/2027 | 5 | **Entrega do piloto e decisão de evolução** | [lora #25](https://github.com/MateussGont/cattle-tracker-lora/issues/25), [lora #31](https://github.com/MateussGont/cattle-tracker-lora/issues/31), [web #20](https://github.com/MateussGont/cattle-tracker-web/issues/20) |
+| S01 | 14/09/2026–20/09/2026 | 6 | **Preparar ambiente e viabilidade da PCB v1** | [lora #3](https://github.com/MateussGont/cattle-tracker-lora/issues/3), [lora #7](https://github.com/MateussGont/cattle-tracker-lora/issues/7), [lora #8](https://github.com/MateussGont/cattle-tracker-lora/issues/8), [lora #20](https://github.com/MateussGont/cattle-tracker-lora/issues/20), [web #20](https://github.com/MateussGont/cattle-tracker-web/issues/20) |
+| S02 | 21/09/2026–27/09/2026 | 6 | **Corrigir GNSS e provisionamento do firmware** | [lora #26](https://github.com/MateussGont/cattle-tracker-lora/issues/26), [lora #27](https://github.com/MateussGont/cattle-tracker-lora/issues/27), [lora #7](https://github.com/MateussGont/cattle-tracker-lora/issues/7) |
+| S03 | 28/09/2026–04/10/2026 | 6 | **Fechar segurança e propriedade do dispositivo** | [web #7](https://github.com/MateussGont/cattle-tracker-web/issues/7), [web #8](https://github.com/MateussGont/cattle-tracker-web/issues/8), [web #13](https://github.com/MateussGont/cattle-tracker-web/issues/13), [web #12](https://github.com/MateussGont/cattle-tracker-web/issues/12) |
+| S04 | 05/10/2026–11/10/2026 | 6 | **Validar cadastro USB no aplicativo** | [web #18](https://github.com/MateussGont/cattle-tracker-web/issues/18), [web #4](https://github.com/MateussGont/cattle-tracker-web/issues/4), [lora #25](https://github.com/MateussGont/cattle-tracker-lora/issues/25) |
+| S05 | 12/10/2026–18/10/2026 | 6 | **Implementar identidade de evento e contrato** | [lora #29](https://github.com/MateussGont/cattle-tracker-lora/issues/29), [web #1](https://github.com/MateussGont/cattle-tracker-web/issues/1) |
+| S06 | 19/10/2026–25/10/2026 | 6 | **Corrigir horários, ordenação e duplicatas** | [web #9](https://github.com/MateussGont/cattle-tracker-web/issues/9), [web #1](https://github.com/MateussGont/cattle-tracker-web/issues/1) |
+| S07 | 26/10/2026–01/11/2026 | 6 | **Ingestão recuperável e Gate A com uma unidade** | [web #10](https://github.com/MateussGont/cattle-tracker-web/issues/10), [lora #9](https://github.com/MateussGont/cattle-tracker-lora/issues/9), [web #12](https://github.com/MateussGont/cattle-tracker-web/issues/12) |
+| S08 | 02/11/2026–08/11/2026 | 6 | **Qualificar alimentação e medição de bateria** | [lora #6](https://github.com/MateussGont/cattle-tracker-lora/issues/6), [lora #7](https://github.com/MateussGont/cattle-tracker-lora/issues/7), [lora #20](https://github.com/MateussGont/cattle-tracker-lora/issues/20) |
+| S09 | 09/11/2026–15/11/2026 | 6 | **Congelar envelope mecânico, antena e interfaces** | [lora #18](https://github.com/MateussGont/cattle-tracker-lora/issues/18), [lora #19](https://github.com/MateussGont/cattle-tracker-lora/issues/19), [lora #21](https://github.com/MateussGont/cattle-tracker-lora/issues/21), [lora #4](https://github.com/MateussGont/cattle-tracker-lora/issues/4), [lora #20](https://github.com/MateussGont/cattle-tracker-lora/issues/20) |
+| S10 | 16/11/2026–22/11/2026 | 6 | **Desenhar esquema e lista de materiais da PCB v1** | [lora #20](https://github.com/MateussGont/cattle-tracker-lora/issues/20) |
+| S11 | 23/11/2026–29/11/2026 | 6 | **Roteamento e revisão do layout v1** | [lora #20](https://github.com/MateussGont/cattle-tracker-lora/issues/20), [lora #18](https://github.com/MateussGont/cattle-tracker-lora/issues/18), [lora #19](https://github.com/MateussGont/cattle-tracker-lora/issues/19) |
+| S12 | 30/11/2026–06/12/2026 | 6 | **Liberar fabricação após revisão independente** | [lora #20](https://github.com/MateussGont/cattle-tracker-lora/issues/20) |
+| S13 | 07/12/2026–13/12/2026 | 6 | **Separar recepção LoRa e publicação** | [lora #5](https://github.com/MateussGont/cattle-tracker-lora/issues/5) |
+| S14 | 14/12/2026–20/12/2026 | 6 | **Recuperar falhas de Wi-Fi e MQTT** | [lora #12](https://github.com/MateussGont/cattle-tracker-lora/issues/12) |
+| S15 | 21/12/2026–27/12/2026 | 6 | **Reserva de fim de ano** | [lora #20](https://github.com/MateussGont/cattle-tracker-lora/issues/20) |
+| S16 | 28/12/2026–03/01/2027 | 6 | **Reserva de fim de ano** | [lora #20](https://github.com/MateussGont/cattle-tracker-lora/issues/20) |
+| S17 | 04/01/2027–10/01/2027 | 6 | **Montar lote v1 e executar testes elétricos iniciais** | [lora #20](https://github.com/MateussGont/cattle-tracker-lora/issues/20), [lora #7](https://github.com/MateussGont/cattle-tracker-lora/issues/7) |
+| S18 | 11/01/2027–17/01/2027 | 6 | **Integrar firmware na v1 e medir perfil final** | [lora #20](https://github.com/MateussGont/cattle-tracker-lora/issues/20), [lora #28](https://github.com/MateussGont/cattle-tracker-lora/issues/28), [lora #6](https://github.com/MateussGont/cattle-tracker-lora/issues/6), [lora #4](https://github.com/MateussGont/cattle-tracker-lora/issues/4), [lora #9](https://github.com/MateussGont/cattle-tracker-lora/issues/9), [lora #11](https://github.com/MateussGont/cattle-tracker-lora/issues/11) |
+| S19 | 18/01/2027–24/01/2027 | 6 | **Gate B: cinco PCBs v1 por 24 h em bancada** | [lora #20](https://github.com/MateussGont/cattle-tracker-lora/issues/20), [lora #10](https://github.com/MateussGont/cattle-tracker-lora/issues/10), [lora #11](https://github.com/MateussGont/cattle-tracker-lora/issues/11) |
+| S20 | 25/01/2027–31/01/2027 | 6 | **Gate C: qualificar a montagem final para campo** | [lora #18](https://github.com/MateussGont/cattle-tracker-lora/issues/18), [lora #19](https://github.com/MateussGont/cattle-tracker-lora/issues/19), [lora #21](https://github.com/MateussGont/cattle-tracker-lora/issues/21), [lora #22](https://github.com/MateussGont/cattle-tracker-lora/issues/22) |
+| S21 | 01/02/2027–07/02/2027 | 6 | **Piloto com PCB v1 — primeira rodada** | [lora #22](https://github.com/MateussGont/cattle-tracker-lora/issues/22), [lora #11](https://github.com/MateussGont/cattle-tracker-lora/issues/11), [lora #20](https://github.com/MateussGont/cattle-tracker-lora/issues/20) |
+| S22 | 08/02/2027–14/02/2027 | 6 | **Piloto com PCB v1 — segunda rodada** | [lora #22](https://github.com/MateussGont/cattle-tracker-lora/issues/22), [lora #11](https://github.com/MateussGont/cattle-tracker-lora/issues/11), [lora #20](https://github.com/MateussGont/cattle-tracker-lora/issues/20) |
+| S23 | 15/02/2027–21/02/2027 | 6 | **Reserva final: corrigir e repetir testes** | [lora #20](https://github.com/MateussGont/cattle-tracker-lora/issues/20), [lora #22](https://github.com/MateussGont/cattle-tracker-lora/issues/22) |
+| S24 | 22/02/2027–28/02/2027 | 6 | **Entregar PCB v1 documentada e piloto validado** | [lora #20](https://github.com/MateussGont/cattle-tracker-lora/issues/20), [lora #22](https://github.com/MateussGont/cattle-tracker-lora/issues/22), [lora #25](https://github.com/MateussGont/cattle-tracker-lora/issues/25), [lora #31](https://github.com/MateussGont/cattle-tracker-lora/issues/31), [web #20](https://github.com/MateussGont/cattle-tracker-web/issues/20) |
 
 ## Roteiro e evidência de cada semana
 
-### S01 — Preparar ambiente, materiais e escopo
+### S01 — Preparar ambiente e viabilidade da PCB v1
 
-**14/09/2026 a 20/09/2026 · 5 h**
+**14/09/2026 a 20/09/2026 · 6 h**
 
-Reproduzir a execução web e os dois builds de firmware; inventariar uma unidade e os materiais das outras quatro; verificar massa/formato preliminares e disponibilidade de apoio ao manejo. Registrar custos, fornecedores e prazos sem realizar compras automáticas.
+Reproduzir os dois builds e a aplicação; inventariar módulos, bateria, ferramentas e materiais; confirmar quem desenha e quem revisa a PCB, experiência no CAD, apoio ao manejo e local. Registrar previsão de orçamento e entrega, sem executar compras.
 
-**Evidência de saída:** Versões e bloqueios registrados; uma montagem identificada; materiais, local próximo e responsáveis confirmados. Se o ambiente ou a viabilidade física não estiverem encaminhados, reestimar o plano nesta semana.
+**Evidência de saída:** Ambiente e unidade de referência identificados; estimativas revistas pelo executor; responsável e revisor de hardware disponíveis. Sem essas condições, replanejar agora.
 
-### S02 — Corrigir segurança básica da aplicação
+### S02 — Corrigir GNSS e provisionamento do firmware
 
-**21/09/2026 a 27/09/2026 · 5 h**
+**21/09/2026 a 27/09/2026 · 6 h**
 
-Corrigir HTML dos popups e limpar/isolar o cache na troca de sessão; executar regressões focadas.
+Conferir pinagem real e validade temporal do GNSS; corrigir atendimento serial e persistência do ID. Restringir a mudança ao necessário para cadastrar e testar uma unidade.
 
-**Evidência de saída:** Marcação no nome do animal não executa código; a troca de conta não exibe dados da sessão anterior.
+**Evidência de saída:** Fixação antiga/desconexão distinguíveis; GET_STATUS e configuração em até 2 s no modo de serviço; ID preservado após reinício. Divisão prevista: 3 h GNSS + 3 h serial, incluindo testes.
 
-### S03 — Validar GNSS e ligação elétrica
+### S03 — Fechar segurança e propriedade do dispositivo
 
-**28/09/2026 a 04/10/2026 · 5 h**
+**28/09/2026 a 04/10/2026 · 6 h**
 
-Conferir a pinagem na montagem real e corrigir leitura/validade temporal do GNSS. Medir alimentação e registrar primeira posição e comportamento sem fixação.
+Corrigir popups, isolamento de cache e autorização do dispositivo; conferir vínculos únicos para o piloto.
 
-**Evidência de saída:** Posição recente distinguível de leitura antiga; GNSS desconectado não produz fixação falsa; sem reinício por alimentação no ensaio.
+**Evidência de saída:** Conteúdo do nome não executa código, sessão anterior não vaza e acesso cruzado é negado. Divisão prevista: 3 h popups/cache + 3 h autorização/testes; vínculos ficarão fixos durante o piloto.
 
-### S04 — Corrigir provisionamento no firmware
+### S04 — Validar cadastro USB no aplicativo
 
-**05/10/2026 a 11/10/2026 · 5 h**
+**05/10/2026 a 11/10/2026 · 6 h**
 
-Implementar parser serial responsivo, confirmação correta da escrita da identidade e tratamento de erro; ensaiar reinício e comandos inválidos.
+Corrigir parser e retomada de cadastro; executar o manual com a unidade de referência e registrar o ID físico/banco.
 
-**Evidência de saída:** GET_STATUS e configuração respondem em até 2 s no modo de serviço; ID confirmado e preservado após reinício.
+**Evidência de saída:** Cadastro interrompido retoma sem duplicar; configuração sobrevive ao reinício. Melhorias de lote e redesign do assistente ficam fora do recorte.
 
-### S05 — Corrigir cadastro USB no aplicativo
+### S05 — Implementar identidade de evento e contrato
 
-**12/10/2026 a 18/10/2026 · 5 h**
+**12/10/2026 a 18/10/2026 · 6 h**
 
-Corrigir identificação das respostas seriais e retomada do cadastro existente; ensaiar o manual com uma unidade.
+Implementar identidade por inicialização/sessão e sequência, versão do pacote e vetores comuns entre brinco, gateway e API.
 
-**Evidência de saída:** Cadastro interrompido é retomado sem criar duplicata; ID do banco confere com a placa depois de reiniciar.
+**Evidência de saída:** Reinício, wrap, pacote desconhecido e duplicata têm comportamento testado; tamanho do pacote atualizado. Recorte de um gateway.
 
-### S06 — Corrigir propriedade e acesso ao dispositivo
+### S06 — Corrigir horários, ordenação e duplicatas
 
-**19/10/2026 a 25/10/2026 · 5 h**
+**19/10/2026 a 25/10/2026 · 6 h**
 
-Definir e implementar a regra de propriedade do dispositivo, com testes de acesso cruzado. Conferir uma associação por unidade/animal para o inventário do piloto; o histórico completo de trocas continua na issue específica.
+Separar recebido-em de horário GNSS, deduplicar e impedir regressão da posição por mensagem atrasada.
 
-**Evidência de saída:** Uma conta fora do escopo não acessa o dispositivo; os cinco vínculos do piloto serão únicos e permanecerão fixos durante o ensaio.
+**Evidência de saída:** Reenvio não cria nova localização lógica; evento atrasado não faz posição ou última comunicação retroceder.
 
-### S07 — Definir identidade de evento após reinício
+### S07 — Ingestão recuperável e Gate A com uma unidade
 
-**26/10/2026 a 01/11/2026 · 5 h**
+**26/10/2026 a 01/11/2026 · 6 h**
 
-Implementar identidade de inicialização/sessão e sequência, compatibilidade do pacote e vetores de teste entre transmissor, gateway e API. Recalcular o tamanho do pacote.
+Implementar transação/rollback/reprocessamento e executar pelo menos 2 h de fluxo ponta a ponta na montagem de referência, incluindo reinícios e falhas.
 
-**Evidência de saída:** Reinício, versão desconhecida, wrap e duplicata são distinguíveis; um evento novo não é descartado como antigo.
+**Evidência de saída:** Cadastro, rádio, MQTT, banco e mapa coerentes, sem identidade trocada/duplicata/corrupção. Reservar 4 h para correção/testes focados e 2 h para preparação/análise do ensaio; coleta passiva pode durar mais.
 
-### S08 — Corrigir tempo, ordenação e duplicatas
+### S08 — Qualificar alimentação e medição de bateria
 
-**02/11/2026 a 08/11/2026 · 5 h**
+**02/11/2026 a 08/11/2026 · 6 h**
 
-Separar recebido-em de horário GNSS e implementar deduplicação para um gateway; preservar posição atual diante de mensagens atrasadas.
+Medir corrente em aquisição, TX e espera; selecionar bateria, proteção, carga e circuito de medição. Ensaiar o circuito de referência que será levado à PCB e registrar calibração.
 
-**Evidência de saída:** Reenvio não duplica a localização; mensagem antiga não faz a posição ou última comunicação retroceder.
+**Evidência de saída:** Alimentação e picos medidos; tensão real com erro conhecido; limites e capacidade para a janela de campo definidos. Sono comercial e comparação ampla de baterias permanecem na evolução; mudanças indispensáveis à janela são bloqueadoras.
 
-### S09 — Tornar a ingestão recuperável
+### S09 — Congelar envelope mecânico, antena e interfaces
 
-**09/11/2026 a 15/11/2026 · 5 h**
+**09/11/2026 a 15/11/2026 · 6 h**
 
-Aplicar transação ao fluxo de persistência e testar falha intermediária, rollback, retry e emissão de eventos após confirmação.
+Ensaiar antena no invólucro representativo e alimentação escolhida; verificar massa/formato/fixação com apoio de manejo. Recalcular airtime do pacote atual e congelar dimensões/conectores. Confirmar fornecedor, orçamento, revisão e janela de recebimento.
 
-**Evidência de saída:** Falha no banco não deixa estado parcial; reprocessamento preserva uma única localização e um estado consistente.
+**Evidência de saída:** Gate H: interfaces e montagem elétrica estáveis; energia, formato e RF adequados à v1. Escopo é o protótipo do piloto. Não iniciar o layout com pinagem, antena ou envelope indefinidos.
 
-### S10 — Gate A: validar uma unidade ponta a ponta
+### S10 — Desenhar esquema e lista de materiais da PCB v1
 
-**16/11/2026 a 22/11/2026 · 5 h**
+**16/11/2026 a 22/11/2026 · 6 h**
 
-Executar pelo menos 2 h contínuas com cadastro, rádio, MQTT, persistência, mapa e histórico; reiniciar placa/gateway/API e observar o resultado. Usar a semana para corrigir os defeitos que bloqueiam esse recorte.
+Criar fontes editáveis da placa que integra os módulos existentes, alimentação/proteção/medição, programação, conectores e pontos de teste. Conferir símbolos e footprints reais.
 
-**Evidência de saída:** Logs ligam a unidade física ao animal correto; zero troca de identidade, duplicata lógica ou regressão temporal. Não encerrar issues mais amplas sem cumprir seus demais critérios.
+**Evidência de saída:** Esquema e BOM versionados; verificação elétrica executada; toda exceção justificada e nenhum erro crítico pendente.
 
-### S11 — Separar recepção LoRa e publicação
+### S11 — Roteamento e revisão do layout v1
 
-**23/11/2026 a 29/11/2026 · 5 h**
+**23/11/2026 a 29/11/2026 · 6 h**
 
-Implementar recepção assíncrona, rearme do rádio e fila limitada entre recepção e publicação; testar o tamanho real dos pacotes.
+Roteiar a placa dentro do envelope aprovado; conferir retorno de corrente, regras RF, áreas livres de antena, acesso à programação e teste. Revisar encaixe e dimensões em escala real.
 
-**Evidência de saída:** Lentidão de rede não interrompe o ciclo de recepção; fila e descartes são observáveis.
+**Evidência de saída:** Layout coerente com o esquema, regras do fabricante configuradas, verificação de layout e conferência mecânica registradas. Revisão começa nesta semana, sem aguardar o último dia.
 
-### S12 — Recuperar falhas de Wi-Fi e MQTT
+### S12 — Liberar fabricação após revisão independente
 
-**30/11/2026 a 06/12/2026 · 5 h**
+**30/11/2026 a 06/12/2026 · 6 h**
 
-Dimensionar buffers com tópico/cabeçalho, verificar publish, adicionar reconexão e heartbeat; definir comportamento quando a fila enche.
+Concluir revisão independente, corrigir pendências, inspecionar Gerbers/furação e pacote de montagem. Responsável aprova orçamento e encomenda lote suficiente para obter cinco placas funcionais.
 
-**Evidência de saída:** Queda e retorno do broker são recuperados; toda perda identificável de fila é contabilizada, sem alegar confirmação de entrega para QoS0.
+**Evidência de saída:** Gate F até 06/12: revisão aprovada e pedido aceito pelo fabricante, com previsão de recebimento antes da montagem de 04/01. Somente arquivos exportados não contam como fabricação iniciada. As 6 h incluem revisão, ajustes e acompanhamento ativo.
 
-### S13 — Ajustar cadência e preparar métricas
+### S13 — Separar recepção LoRa e publicação
 
-**07/12/2026 a 13/12/2026 · 5 h**
+**07/12/2026 a 13/12/2026 · 6 h**
 
-Experimentar agendamento sem bloqueio e jitter com o pacote final; começar pelo candidato de 60 s e comparar com a bancada. Preparar registro mínimo de TX, RX, banco e motivo de descarte.
+Implementar recepção assíncrona, rearme e fila limitada; testar rede lenta com módulos de referência enquanto a PCB é fabricada.
 
-**Evidência de saída:** Configuração reproduzível, airtime recalculado e contadores suficientes para medir PDR. Cadência final depende do resultado; não é configuração de produção aprovada.
+**Evidência de saída:** Recepção continua com publicação lenta; limite, ocupação e descartes da fila observáveis. Espera do fabricante não consome dedicação, mas acompanhamento consome.
 
-### S14 — Montar e identificar cinco unidades
+### S14 — Recuperar falhas de Wi-Fi e MQTT
 
-**14/12/2026 a 20/12/2026 · 5 h**
+**14/12/2026 a 20/12/2026 · 6 h**
 
-Montar/configurar os quatro kits adicionais já adquiridos, identificar as cinco unidades e verificar alimentação, transmissão, massa e fixação preliminares. Usar módulos e invólucro existentes, sem projeto de PCB.
+Dimensionar buffer com tópico/cabeçalho, tratar publish, reconexão, heartbeat e fila cheia; registrar TX/RX e contadores básicos para o ensaio.
 
-**Evidência de saída:** Cinco IDs únicos, inventário preenchido e unidades prontas para o ensaio prolongado; montagem insegura ou material em falta impede ampliar a escala.
+**Evidência de saída:** Broker/rede recuperam após falha e perdas identificáveis são contabilizadas. Não alegar entrega confirmada para QoS0. Conferir andamento do pedido dentro das 6 h.
 
 ### S15 — Reserva de fim de ano
 
-**21/12/2026 a 27/12/2026 · 5 h**
+**21/12/2026 a 27/12/2026 · 6 h**
 
-Capacidade protegida para atrasos de materiais, montagem, correções ou indisponibilidade da equipe. Não assumir funcionalidades novas.
+Janela protegida para atraso, recesso ou ajustes de fabricação. Nenhuma funcionalidade nova.
 
-**Evidência de saída:** Registrar se as 5 h foram utilizadas ou indisponíveis e atualizar a reserva restante.
+**Evidência de saída:** Registrar horas usadas ou indisponíveis; atualizar previsão do fabricante e reserva restante.
 
 ### S16 — Reserva de fim de ano
 
-**28/12/2026 a 03/01/2027 · 5 h**
+**28/12/2026 a 03/01/2027 · 6 h**
 
-Segunda janela de contingência para retrabalho ou recesso. Se houver trabalho, escolher o maior bloqueio do Gate B.
+Segunda janela protegida de fim de ano. Confirmar recebimento da PCB e materiais para a montagem de janeiro.
 
-**Evidência de saída:** Nenhuma nova obrigação criada por uma reserva não utilizada; disponibilidade real recalculada.
+**Evidência de saída:** Se as placas não chegarem a tempo, registrar impacto no caminho crítico e replanejar; espera não garante entrega.
 
-### S17 — Gate B: cinco unidades por 24 h em bancada
+### S17 — Montar lote v1 e executar testes elétricos iniciais
 
-**04/01/2027 a 10/01/2027 · 5 h**
+**04/01/2027 a 10/01/2027 · 6 h**
 
-Executar coleta automatizada por pelo menos 24 h, induzir falhas previstas e analisar cada unidade. Preparação e análise entram nas 5 h; coleta passiva não substitui supervisão quando ela for necessária.
+Inspecionar as placas recebidas; testar uma com alimentação limitada antes de montar o restante; conferir tensões, programação, USB, GNSS, rádio e medição. Montar e identificar cinco unidades funcionais.
 
-**Evidência de saída:** PDR por unidade >=95% no cenário declarado, zero identidade trocada/duplicata lógica/corrupção, perdas e recuperação documentadas. TX precisa de contador de referência independente.
+**Evidência de saída:** Cinco PCBs v1 montadas, sem falha elétrica crítica, identificadas por revisão/serial e com checklist por unidade. Montagem/retrabalho deve caber no orçamento; processo complexo ou componentes discretos exigem nova estimativa.
 
-### S18 — Medir autonomia e qualificar o protótipo físico
+### S18 — Integrar firmware na v1 e medir perfil final
 
-**11/01/2027 a 17/01/2027 · 5 h**
+**11/01/2027 a 17/01/2027 · 6 h**
 
-Medir corrente e autonomia, ajustar o perfil dentro da configuração validada e conferir aquecimento, fixação, bordas e proteção. Revisar com responsável de manejo. Registrar limitações; não iniciar desenho industrial.
+Ajustar cadência/jitter com o pacote final; consolidar contadores TX/RX/banco e leitura de bateria; medir consumo na PCB real e repetir pelo menos 2 h ponta a ponta.
 
-**Evidência de saída:** Energia suficiente para a janela de campo com margem definida; massa, instalação e remoção aprovadas para este protótipo. Problema físico impede uso em animais.
+**Evidência de saída:** Configuração rastreável, bateria real e autonomia para a janela com margem definida; rádio e identidade corretos na PCB. Usar candidato de 60 s como experimento, com resultado documentado.
 
-### S19 — Gate C: autorizar entrada no campo
+### S19 — Gate B: cinco PCBs v1 por 24 h em bancada
 
-**18/01/2027 a 24/01/2027 · 5 h**
+**18/01/2027 a 24/01/2027 · 6 h**
 
-Validar alcance no local e com o invólucro, conferir requisitos aplicáveis ao hardware e fechar roteiro das duas rodadas: local, duração, recarga, deslocamento, inspeções e critérios de interrupção.
+Executar pelo menos 24 h de coleta automatizada com as cinco unidades, induzir falhas previstas e comparar TX/RX/banco por unidade.
 
-**Evidência de saída:** Local/cobertura, alimentação e condição física aprovados; esforço ativo de operação cabe em 5 h por semana. Havendo falha, usar a capacidade seguinte para corrigir e repetir o gate.
+**Evidência de saída:** Até 24/01: lote v1 montado e testado; PDR >=95% por unidade no cenário declarado; zero identidade trocada, duplicata lógica ou corrupção; perdas e recuperação explicadas.
 
-### S20 — Piloto de campo — primeira rodada
+### S20 — Gate C: qualificar a montagem final para campo
 
-**25/01/2027 a 31/01/2027 · 5 h**
+**25/01/2027 a 31/01/2027 · 6 h**
 
-Instalar progressivamente uma, depois três e até cinco unidades após conferência; executar coleta e inspeções previstas, mantendo os vínculos fixos. Registrar toda atividade ativa, inclusive deslocamento e recarga.
+Repetir RF, energia, montagem e inspeções no invólucro com a PCB final. Fechar local, instalação/remoção, recarga, supervisão, deslocamento e critérios de interrupção.
 
-**Evidência de saída:** Primeira rodada com as cinco unidades identificadas, logs completos e problemas registrados; interromper diante dos critérios definidos no Gate C.
+**Evidência de saída:** Até 31/01: protótipo final aprovado para uso no animal e ensaios do piloto; esforço ativo cabe em 6 h semanais. Protótipo modular anterior não substitui essa aprovação da v1.
 
-### S21 — Piloto de campo — segunda rodada
+### S21 — Piloto com PCB v1 — primeira rodada
 
-**01/02/2027 a 07/02/2027 · 5 h**
+**01/02/2027 a 07/02/2027 · 6 h**
 
-Repetir em outro dia/janela, comparar cobertura, fixação GNSS, perdas, disponibilidade e autonomia; coletar relato do operador.
+Instalar progressivamente uma, três e cinco unidades após conferência; executar pelo menos 4 h de coleta por unidade e inspeções previstas.
 
-**Evidência de saída:** Duas rodadas comparáveis em dias distintos com cinco unidades, sem troca de identidade nem incidentes físicos. Não inferir autonomia de meses a partir deste ensaio.
+**Evidência de saída:** Primeira rodada nas cinco PCBs v1 com inventário, configurações, TX/RX e incidentes registrados. Vínculos animal/unidade fixos.
 
-### S22 — Corrigir bloqueadores e repetir o cenário afetado
+### S22 — Piloto com PCB v1 — segunda rodada
 
-**08/02/2027 a 14/02/2027 · 5 h**
+**08/02/2027 a 14/02/2027 · 6 h**
 
-Priorizar somente falhas que afetam os critérios do piloto. Vincular cada correção a uma issue e repetir os testes que podem ter regredido.
+Repetir em dia distinto com pelo menos 4 h de coleta por unidade; comparar cobertura, GNSS, perdas e autonomia; recolher relato do operador.
 
-**Evidência de saída:** Defeitos críticos resolvidos e cenário reexecutado, ou decisão explícita de reprovação/replanejamento. Adiar aperfeiçoamentos sem impacto no aceite.
+**Evidência de saída:** Até 14/02: duas rodadas comparáveis nas cinco unidades, PDR >=95% nas janelas declaradas, sem mistura de identidade nem incidente físico.
 
-### S23 — Reserva final de validação
+### S23 — Reserva final: corrigir e repetir testes
 
-**15/02/2027 a 21/02/2027 · 5 h**
+**15/02/2027 a 21/02/2027 · 6 h**
 
-Proteger 5 h para repetição por clima, conectividade, material ou regressão. Se não for necessária, antecipar relatório, revisão do manual e pacote de entrega.
+Usar até 6 h para bloqueadores e repetição por defeito, clima ou conectividade. Se não necessária, antecipar relatório e pacote de entrega.
 
-**Evidência de saída:** Riscos pendentes resolvidos sem introduzir funcionalidades novas na última semana.
+**Evidência de saída:** Correção vinculada a evidência e cenário reexecutado. Uma nova fabricação não é presumida possível nesta janela.
 
-### S24 — Entrega do piloto e decisão de evolução
+### S24 — Entregar PCB v1 documentada e piloto validado
 
-**22/02/2027 a 28/02/2027 · 5 h**
+**22/02/2027 a 28/02/2027 · 6 h**
 
-Consolidar relatório, versões/configurações, inventário, manual revisado, evidências e demonstração de restauração do ambiente do piloto. Apresentar resultado e próximos passos.
+Consolidar CAD, BOM, fabricação, montagem, testes por placa, versões de firmware/web, inventário, manual revisado e relatório de campo. Demonstrar restauração do ambiente do piloto e obter aceite.
 
-**Evidência de saída:** Até 28/02: aceite por evidência dos gates e duas rodadas, pendências classificadas e decisão sobre expansão para 10–25 unidades. Só declarar piloto validado se os critérios passarem.
+**Evidência de saída:** Até 28/02: PCB v1 física funcional e piloto com evidências; nenhum bloqueador crítico aberto; próximos passos da v1.1/v2 documentados. Só declarar validação se os critérios passarem.
 
 ## Gates e decisões
 
-| Data-limite planejada | Gate | Condição para avançar |
+| Até | Marco | Evidência necessária |
 | --- | --- | --- |
-| 20/09/2026 | Preparação | Ambiente reproduzível ou bloqueios com solução estimada; materiais, montagem viável e apoio físico identificados. |
-| 22/11/2026 | A — uma unidade | Cadastro confirmado após reboot e 2 h de fluxo correto, com testes de falha, identidade e tempo. |
-| 10/01/2027 | B — cinco unidades | 24 h de bancada com PDR por unidade >=95% no cenário declarado e zero mistura de identidade/duplicação lógica/corrupção. |
-| 24/01/2027 | C — entrada no campo | RF, autonomia para a janela, montagem, instalação/remoção e rotina aprovadas; supervisão/deslocamento cabem no orçamento ativo. |
-| 07/02/2027 | D — coleta de campo | Duas rodadas de pelo menos 4 h por unidade em dias distintos, cobrindo as cinco unidades e registrando as condições. |
-| 28/02/2027 | E — aceite | Relatório e evidências completos, nenhum bloqueador crítico aberto e resultado aprovado por quem responde pelo piloto. |
+| 20/09/2026 | Preparação | Ambiente, executor/revisor de hardware, materiais e estimativas confirmados. |
+| 01/11/2026 | A — uma unidade | Cadastro e 2 h ponta a ponta na referência, com identidade, tempo e recuperação corretos. |
+| 15/11/2026 | H — base física | Energia, circuito de medição, envelope, antena e interfaces aprovados para projetar a v1. |
+| 06/12/2026 | F — fabricação | Esquema/layout revisados e pedido aceito, com recebimento planejado antes de 04/01. |
+| 10/01/2027 | Montagem | Cinco placas v1 montadas e aprovadas nos testes elétricos iniciais. |
+| 24/01/2027 | B — PCB testada | Cinco PCBs por 24 h de bancada, com métricas e estabilidade aprovadas. |
+| 31/01/2027 | C — entrada no campo | Montagem final, RF, autonomia, invólucro e rotina aprovados para uso. |
+| 14/02/2027 | D — campo | Duas rodadas em dias distintos, com >=4 h de coleta por unidade por rodada, nas cinco PCBs. |
+| 28/02/2027 | E — aceite | PCB v1 funcional/documentada e relatório de piloto aprovado, sem bloqueador crítico. |
 
-PDR = pacotes válidos recebidos / tentativas reais de transmissão por unidade. Usar contadores/logs de TX e RX; não derivar tentativas somente de registros que chegaram à API, nem contar frames recebidos por dois gateways como dois eventos. Separar perda de rádio, descarte de fila e falha de ingestão. Sem fonte confiável do denominador, registrar a métrica como inconclusiva e repetir.
+PDR = pacotes válidos únicos recebidos / tentativas reais de transmissão por unidade. Usar referência de TX independente dos dados que chegaram à API; separar perdas de rádio, fila e ingestão. Sem denominador confiável, a métrica é inconclusiva. Meta inicial: >=95% por unidade em bancada e nas janelas de cobertura declaradas para o campo; zero troca de identidade, corrupção ou duplicata lógica. Registrar latência P50/P95, fix GNSS, reinícios e autonomia; definir limites coerentes com a tarefa na S01 e congelá-los antes do Gate A. Não mudar o cenário depois para esconder perdas.
 
-Meta inicial de confiabilidade: PDR >=95% por unidade em bancada e nas janelas de cobertura declaradas para o campo; nenhum cruzamento de identidade, corrupção ou duplicata lógica. Registrar latência P50/P95, tempo até fix GNSS, reinícios e autonomia; definir limites de latência/precisão/energia coerentes com a tarefa na S01 e congelá-los antes do Gate A. RSSI/SNR são diagnóstico, não substitutos de PDR. Não mudar o cenário para esconder perdas após observar os resultados.
+## Fabricação e caminho crítico
+
+Base física (S08–S09) → esquema (S10) → layout (S11) → revisão/pedido (S12) → fabricação/transporte → montagem (S17) → integração/lote (S18–S19) → montagem final aprovada (S20) → campo (S21–S22) → aceite (S24).
+
+**Meta de liberação/pedido: até 06/12/2026; recebimento planejado: antes de 04/01/2027.** A janela é uma premissa do calendário, não um prazo confirmado de fornecedor. Confirmar disponibilidade de componentes, custo, fabricação, montagem quando aplicável, frete e recebimento antes de contratar. Acompanhamento ativo entra no teto; S13–S14 usam a montagem de referência durante a espera. Nenhuma compra foi feita por este planejamento.
+
+A reserva de 18 h cobre retrabalho ativo e indisponibilidade, não cria semanas extras para uma segunda fabricação. Não há uma segunda rodada completa de PCB garantida antes de fevereiro. Defeito que exija refabricação ou atraso de recebimento deve disparar replanejamento imediatamente. Não substituir silenciosamente a PCB do piloto pelo protótipo anterior.
 
 ## Controle de escopo e risco
 
-- **Uma entrega principal em andamento por vez.** O limite anterior de duas implementações simultâneas foi reduzido para caber em cinco horas totais. Não colocar um cartão em execução só porque ele aparece no plano.
-- Ao terminar cada semana, registrar horas reais, evidência, maior bloqueio e previsão da próxima. Se uma tarefa ultrapassar a estimativa, terminar o critério essencial e replanejar; não empilhar o atraso sobre as próximas cinco horas.
-- Usar reserva somente para bloqueadores do piloto ou indisponibilidade. Se a estimativa restante exceder a capacidade restante, explicitar a diferença em horas e decidir entre mais capacidade, menor escopo de experimento ou mudança de prazo. Nunca remover critérios de integridade ou aprovação física apenas para manter a data.
-- **Reavaliar em 22/11 e 10/01.** Se não houver uma unidade estável no Gate A ou cinco unidades prontas no Gate B, o piloto de fevereiro fica em risco; registrar imediatamente a correção do plano.
-- Materiais precisam estar disponíveis antes da montagem de dezembro. Aprovação e compra são decisões do responsável; nenhum gasto foi autorizado ou realizado por este planejamento.
-- O cronograma é restrito ao piloto. Uma entrega parcial não fecha a issue ampla de 10–25 unidades, PCB, hardware industrial ou produção. Vincular o resultado do recorte e manter os critérios restantes abertos.
+- Conferir estimativas/experiência e disponibilidade na S01. S02 (GNSS/serial), S03 (segurança/autorização), S09 (mecânica/RF) e S17 (montagem) têm concentração de trabalho e merecem revisão antecipada.
+- Reavaliar em **01/11 (Gate A), 15/11 (base física), 06/12 (pedido), 10/01 (montagem) e 24/01 (lote testado)**. Ausência de evidência impede avançar; datas não aprovam circuitos nem uso em animais.
+- O software fica focado em um gateway, vínculos fixos, cadastro, identidade/tempo, ingestão e recuperação. Automação completa de CI, multi-gateway, sono avançado e produto completo não devem disputar horas com a v1; mudanças necessárias à segurança ou aos critérios do piloto continuam bloqueadoras.
+- Ao fim de cada semana, registrar horas reais, evidência, pendência e reserva restante. Se a estimativa exceder a capacidade restante, explicitar o déficit e decidir capacidade, escopo técnico ou prazo com o responsável. Não remover critérios físicos ou de integridade para manter a data.
+- O aceite da PCB em bancada na S19 não substitui o aceite de uso no animal na S20. Não avançar para campo com defeito elétrico, montagem inadequada ou energia insuficiente.
 
 ## Como acompanhar no GitHub
 
-[Project central](https://github.com/users/MateussGont/projects/1) · [Checklist semanal — issue #32](https://github.com/MateussGont/cattle-tracker-lora/issues/32) · [Marco com prazo em 28/02/2027](https://github.com/MateussGont/cattle-tracker-lora/milestone/5) · [Backlog completo](backlog.md) · [Plano de evolução de longo prazo](plano-evolucao.md).
+[Project dos dois repositórios](https://github.com/users/MateussGont/projects/1) · [Checklist semanal #32](https://github.com/MateussGont/cattle-tracker-lora/issues/32) · [PCB v1 #20](https://github.com/MateussGont/cattle-tracker-lora/issues/20) · [Piloto #22](https://github.com/MateussGont/cattle-tracker-lora/issues/22) · [Marco de fevereiro](https://github.com/MateussGont/cattle-tracker-lora/milestone/5).
 
-Este calendário passa a ser a referência para o prazo de fevereiro. As datas antigas das issues do roadmap amplo eram estimativas sem esta restrição de capacidade e não devem ser somadas ao compromisso de 120 h. A issue de planejamento semanal centraliza os 24 blocos, horas e gates, sem criar 24 bugs duplicados nem converter pontos de esforço em horas. O marco de fevereiro registra o aceite do piloto; as fases M1–M4 continuam organizando a evolução mais ampla.
+Esta revisão é a referência vigente para datas e horas. Atualizações históricas do Project permanecem como registro, sem integrar o compromisso de 144 h. Pontos antigos não são horas. As fases M1–M4 continuam organizando a evolução posterior; [backlog](backlog.md) e [plano de evolução](plano-evolucao.md) preservam os demais objetivos.

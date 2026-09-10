@@ -4,11 +4,11 @@
 
 44 issues organizadas entre os dois repositórios: 20 novas e seis transferidas, preservando o histórico das anteriores. Este inventário retrata a organização inicial; o status atualizado fica no GitHub. A prioridade vale dentro da fase: P0 de piloto não significa iniciar antes da bancada.
 
-O planejamento posterior acrescentou a [issue #32 — checklist das 24 semanas](https://github.com/MateussGont/cattle-tracker-lora/issues/32), totalizando 45 itens com a coordenação do prazo. O [marco do piloto](https://github.com/MateussGont/cattle-tracker-lora/milestone/5) vence em 28/02/2027 e centraliza o aceite do recorte dos dois repositórios. As issues M1–M4 preservam seu escopo completo.
+O planejamento posterior acrescentou a [issue #32 — checklist das 24 semanas](https://github.com/MateussGont/cattle-tracker-lora/issues/32), totalizando 45 itens com a coordenação do prazo. O [marco de PCB v1 + piloto](https://github.com/MateussGont/cattle-tracker-lora/milestone/5) vence em 28/02/2027 e centraliza o aceite do recorte dos dois repositórios. As issues M1–M4 preservam seu escopo completo.
 
 ## Prioridades iniciais
 
-O calendário semanal é a ordem vigente, com 5 h totais da equipe: S01 prepara ambiente e materiais; os ajustes abaixo se distribuem entre S02 e S08. Esta lista não representa uma única semana de trabalho.
+O calendário semanal é a ordem vigente, com 6 h totais da equipe: S01 prepara ambiente e materiais; os ajustes abaixo se distribuem entre S02 e S06. Esta lista não representa uma única semana de trabalho.
 
 - [ ] [[Segurança] Impedir injeção de HTML nos popups do mapa](https://github.com/MateussGont/cattle-tracker-web/issues/7)
 - [ ] [[Segurança] Isolar cache e consultas entre sessões de usuários](https://github.com/MateussGont/cattle-tracker-web/issues/8)
@@ -17,7 +17,7 @@ O calendário semanal é a ordem vigente, com 5 h totais da equipe: S01 prepara 
 - [ ] [[Provisionamento] Corrigir parser USB e permitir retomada do cadastro](https://github.com/MateussGont/cattle-tracker-web/issues/18)
 - [ ] [[Telemetria] Separar horário recebido, horário GNSS e posição atual](https://github.com/MateussGont/cattle-tracker-web/issues/9)
 
-Correção de autorização web#13 está prevista na S06, antes de uso entre contas/propriedades distintas. Identidade/deduplicação ocupa S07–S08; ingestão atômica, S09; validação de uma unidade por 2 h, S10. O recorte do piloto usa associações fixas; alertas e histórico completo de trocas continuam no backlog amplo. Cada semana inclui preparação, execução, validação e registro, sem trabalho paralelo fora do teto da equipe.
+Correção de autorização web#13 está prevista na S03, antes de uso entre contas/propriedades distintas. Identidade/deduplicação ocupa S05–S06; ingestão atômica e Gate A de uma unidade por 2 h, S07. Energia e envelope/RF são antecipados para S08–S09; PCB v1 ocupa S10–S12 e S17, com bancada até 24/01 e campo em fevereiro. O recorte do piloto usa associações fixas; alertas e histórico completo de trocas continuam no backlog amplo. Cada semana inclui preparação, execução, validação e registro, sem trabalho paralelo fora do teto da equipe.
 
 ## M1
 
@@ -71,8 +71,8 @@ Correção de autorização web#13 está prevista na S06, antes de uso entre con
 | --- | --- | --- |
 | P0 | [lora #18](https://github.com/MateussGont/cattle-tracker-lora/issues/18) | [Hardware/Mecânica] Desenvolver formato físico de brinco seguro para o animal |
 | P0 | [lora #19](https://github.com/MateussGont/cattle-tracker-lora/issues/19) | [Hardware/RF] Validar antenas, alcance e conformidade em 915 MHz |
-| P0 | [lora #22](https://github.com/MateussGont/cattle-tracker-lora/issues/22) | [Piloto] Planejar e executar piloto de campo com 10–25 brincos |
-| P1 | [lora #20](https://github.com/MateussGont/cattle-tracker-lora/issues/20) | [Hardware] Projetar a PCB integrada do brinco após os gates de validação |
+| P0 | [lora #22](https://github.com/MateussGont/cattle-tracker-lora/issues/22) | [Piloto] Validar cinco brincos com PCB v1 em campo |
+| P0 | [lora #20](https://github.com/MateussGont/cattle-tracker-lora/issues/20) | [Hardware] Entregar PCB v1 do brinco fabricada, montada e testada |
 | P1 | [lora #21](https://github.com/MateussGont/cattle-tracker-lora/issues/21) | [Hardware] Validar invólucro e resistência ambiental do brinco |
 
 ## M4

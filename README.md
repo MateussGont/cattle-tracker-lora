@@ -13,9 +13,10 @@ flowchart LR
 
 ## Comece aqui
 
-- [Planejamento semanal: piloto até 28/02/2027, com 5 h semanais da equipe](docs/planejamento-semanal.md).
+- [Planejamento semanal: PCB v1 + piloto até 28/02/2027, com 6 h semanais da equipe](docs/planejamento-semanal.md).
 - [Project: tarefas dos dois repositórios](https://github.com/users/MateussGont/projects/1) e [backlog priorizado](docs/backlog.md).
 - [Plano de evolução e critérios de avanço](docs/plano-evolucao.md).
+- [Escopo, fabricação e aceite da PCB v1](docs/plano-pcb-v1.md).
 - [Manual de cadastro do brinco](docs/manual-cadastro-brinco.md).
 - [Revisão completa do firmware](docs/revisao-firmware.md) e [revisão de código e arquitetura](docs/revisao-cattle-tracker-lora.md).
 - [Separação, contratos e distribuição do firmware](docs/separacao-repositorios.md).

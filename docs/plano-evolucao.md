@@ -1,18 +1,18 @@
 # Plano de evolução — Cattle Tracker
 A prioridade é obter um brinco identificável e um fluxo de dados confiável, demonstrados em bancada, antes de ampliar o rebanho ou fechar a PCB. O trabalho será organizado por evidência de conclusão.
 
-## Prazo do piloto
-**Piloto validado até 28/02/2027, com 5 horas semanais para toda a equipe.** O [planejamento semanal](planejamento-semanal.md) detalha as 24 semanas de 14/09/2026 a 28/02/2027: 105 h de entregas e 15 h de reserva. A previsão considera cinco brincos, um gateway e uma propriedade, com duas rodadas de campo após aprovação de bancada e do protótipo físico.
+## Prazo da PCB v1 e do piloto
+**PCB v1 do brinco fabricada, montada e testada + piloto validado até 28/02/2027, com 6 horas semanais para toda a equipe.** O [planejamento semanal](planejamento-semanal.md) distribui 144 h em 24 semanas: 126 h de entregas e 18 h de reserva. A previsão considera cinco brincos com a placa v1 própria, um gateway e uma propriedade, com duas rodadas de campo depois da bancada e da aprovação física. O [plano da PCB](plano-pcb-v1.md) define pacote de fabricação e evidências de aceite.
 
-As fases abaixo descrevem a evolução completa. Somente os recortes identificados no calendário entram no compromisso de fevereiro; 10–25 unidades, PCB própria e preparação integral de produção ficam para depois. Cumprir um recorte não encerra automaticamente sua issue mais ampla.
+As fases abaixo descrevem a evolução completa. Somente os recortes identificados no calendário entram no compromisso de fevereiro; 10–25 unidades, RF discreto, miniaturização final, PCB do gateway e preparação integral de produção ficam para depois. Cumprir um recorte não encerra automaticamente sua issue mais ampla.
 
 ## Organização
 - **cattle-tracker-lora:** brinco, gateway, protocolo do rádio, hardware, orçamento de enlace e validação física.
 - **cattle-tracker-web:** backend, frontend, banco, MQTT de infraestrutura, operação do aplicativo e cadastro.
 - **Project Cattle Tracker — Brinco LoRa MVP:** quadro central dos dois repositórios.
 - Um responsável assume cada item quando ele entra em execução. Não atribuir automaticamente todo o backlog a uma pessoa.
-- Limite de trabalho em andamento: uma entrega principal por vez, incluindo implementação e validação no teto de 5 h da equipe.
-- Revisão semanal curta dentro das 5 h: resultado demonstrado, horas reais, bloqueios e próxima entrega. O calendário semanal substitui as datas históricas do roadmap como referência para fevereiro.
+- Limite de trabalho em andamento: uma entrega principal por vez, incluindo implementação e validação no teto de 6 h da equipe.
+- Revisão semanal curta dentro das 6 h: resultado demonstrado, horas reais, bloqueios e próxima entrega. O calendário semanal substitui as datas históricas do roadmap como referência para fevereiro.
 
 ## Prioridades e fluxo
 P0: impede acesso seguro ou uma validação básica confiável. P1: necessário antes de ampliar o piloto. P2: evolução posterior.
@@ -38,7 +38,7 @@ Gate: resultados reproduzíveis de 25 nós; consumo, cobertura e recuperação d
 
 ## M3 — viabilidade física e piloto controlado
 Medir corrente em aquisição GNSS, TX e sono; selecionar medição de bateria e avaliar retenção da identidade/contador em reinícios. Testar GNSS e LoRa dentro do invólucro e próximo ao animal.
-Validar massa, fixação, integridade mecânica, alimentação, antena e condições ambientais antes de fechar uma PCB. Um protótipo modular pode participar do piloto se cumprir os requisitos físicos; PCB customizada não é um gate obrigatório por si só.
+Validar massa, fixação, integridade mecânica, alimentação, antena e condições ambientais antes de fechar uma PCB. A PCB v1 própria do brinco passa a ser entrega obrigatória. A premissa é integrar os módulos já utilizados; a montagem modular serve aos ensaios antes da fabricação. O piloto de fevereiro usará as cinco PCBs v1, após nova aprovação física da montagem final.
 Piloto progressivo: começar pequeno e ampliar para 10–25 unidades somente com evidência. Selecionar local, duração, responsáveis e critérios de interrupção com a equipe de manejo. Metas finais de autonomia, massa, cobertura e precisão precisam de dados e aprovação de produto.
 Gate: relatório comparando resultados com metas, incidentes registrados e decisão de iterar hardware, ampliar piloto ou interromper.
 
@@ -47,8 +47,8 @@ UX orientada às tarefas do operador, painel diagnóstico, paginação, trajetó
 Só ampliar número de instâncias do backend depois de definir propriedade do processamento MQTT/jobs e distribuição de eventos WebSocket.
 
 ## Ordem semanal vigente
-S01 prepara ambiente, materiais e critérios do piloto; S02–S09 corrigem segurança, cadastro, identidade e ingestão; S10 valida uma unidade. S11–S17 preparam e validam cinco unidades; S18–S21 qualificam o protótipo e executam as duas rodadas de campo. S22–S24 tratam bloqueadores e concluem a entrega. S15, S16 e S23 são reservas, sem funcionalidades novas.
-O [calendário completo](planejamento-semanal.md) define datas, referências e evidências semanais. Reavaliar a viabilidade em 22/11/2026 e 10/01/2027; atrasos consomem reserva ou exigem uma decisão explícita sobre capacidade, escopo ou prazo.
+S01 prepara ambiente, executor/revisor e materiais; S02–S07 corrigem o fluxo mínimo e validam uma unidade. S08–S09 qualificam energia, formato e RF; S10–S12 entregam esquema, layout e revisão/pedido da PCB. S13–S14 trabalham o gateway durante a fabricação. S17 monta a v1; S18–S20 integram, ensaiam cinco placas e aprovam a montagem final. S21–S22 executam o campo; S24 entrega o conjunto. S15, S16 e S23 são reservas.
+O [calendário completo](planejamento-semanal.md) é a referência vigente. Reavaliar em 01/11, 15/11, 06/12, 10/01 e 24/01. Pedido até 06/12 e recebimento antes de 04/01 dependem do fornecedor; uma segunda fabricação completa não está garantida pela reserva.
 
 ## Decisões registradas
 Frontend e backend permanecem juntos na aplicação web; gateway físico continua junto ao firmware. Não há mudança para LoRaWAN nesta etapa. O brinco permanece transmissor simples no MVP. As configurações RF propostas são experimentos, não parâmetros de produção já aprovados. Não introduzir ACK obrigatório ou recepção contínua no brinco sem demonstrar benefício e custo energético.

@@ -2,7 +2,8 @@
 
 | Documento | Quando usar |
 | --- | --- |
-| [Planejamento semanal até fevereiro de 2027](planejamento-semanal.md) | Executar 24 semanas de 5 h e acompanhar o aceite do piloto |
+| [Planejamento semanal até fevereiro de 2027](planejamento-semanal.md) | Executar 24 semanas de 6 h e acompanhar PCB v1 + piloto |
+| [PCB v1](plano-pcb-v1.md) | Preparar projeto, fabricação, montagem e testes da placa do brinco |
 | [Backlog](backlog.md) | Escolher a próxima issue |
 | [Plano de evolução](plano-evolucao.md) | Entender fases, dependências e gates |
 | [Manual de cadastro](manual-cadastro-brinco.md) | Cadastrar e conferir uma unidade |
