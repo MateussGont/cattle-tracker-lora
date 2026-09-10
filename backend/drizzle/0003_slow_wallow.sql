@@ -1,1 +1,0 @@
-ALTER TABLE "devices" ALTER COLUMN "radio_device_id" SET DATA TYPE integer;

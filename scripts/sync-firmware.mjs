@@ -1,7 +1,8 @@
 // Merges the bootloader, partition table, OTA bootstrap and application into
 // the single image consumed by the browser's Web Serial provisioning wizard.
 import { execFileSync } from "node:child_process";
-import { existsSync, mkdirSync, statSync } from "node:fs";
+import { createHash } from "node:crypto";
+import { existsSync, mkdirSync, readFileSync, statSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 
@@ -10,7 +11,7 @@ const buildDir = join(repoRoot, ".pio", "build", "collar_xiao_sx1262");
 const bootloader = join(buildDir, "bootloader.bin");
 const partitions = join(buildDir, "partitions.bin");
 const application = join(buildDir, "firmware.bin");
-const destDir = join(repoRoot, "frontend", "public", "firmware");
+const destDir = join(repoRoot, "dist", "firmware");
 const dest = join(destDir, "collar-latest.bin");
 
 for (const source of [bootloader, partitions, application]) {
@@ -68,3 +69,4 @@ if (size <= statSync(application).size) {
   throw new Error(`Merged firmware is unexpectedly small (${size} bytes).`);
 }
 console.log(`Merged flash image (${size} bytes) -> ${dest}`);
+console.log(`SHA-256: ${createHash("sha256").update(readFileSync(dest)).digest("hex")}`);

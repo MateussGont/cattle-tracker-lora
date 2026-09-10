@@ -1,3 +1,5 @@
+> **Contexto após a separação:** backend/frontend/infra agora estão em [cattle-tracker-web](https://github.com/MateussGont/cattle-tracker-web); firmware/protocolo/hardware permanecem em [cattle-tracker-lora](https://github.com/MateussGont/cattle-tracker-lora). Este documento registra a arquitetura anterior e decisões históricas; afirmações de completude devem ser confrontadas com a [revisão técnica](https://github.com/MateussGont/cattle-tracker-lora/blob/main/docs/revisao-cattle-tracker-lora.md). O [contrato atual](https://github.com/MateussGont/cattle-tracker-lora/blob/main/docs/separacao-repositorios.md) e o [plano](https://github.com/MateussGont/cattle-tracker-lora/blob/main/docs/plano-evolucao.md) orientam novas mudanças.
+
 # Arquitetura do sistema
 
 ## Visão geral
