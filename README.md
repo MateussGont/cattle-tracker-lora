@@ -13,6 +13,7 @@ flowchart LR
 
 ## Comece aqui
 
+- [Planejamento semanal: piloto até 28/02/2027, com 5 h semanais da equipe](docs/planejamento-semanal.md).
 - [Project: tarefas dos dois repositórios](https://github.com/users/MateussGont/projects/1) e [backlog priorizado](docs/backlog.md).
 - [Plano de evolução e critérios de avanço](docs/plano-evolucao.md).
 - [Manual de cadastro do brinco](docs/manual-cadastro-brinco.md).

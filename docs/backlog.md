@@ -1,10 +1,14 @@
 # Backlog e ordem de execução
 
-[Project central](https://github.com/users/MateussGont/projects/1) · [Plano de evolução](plano-evolucao.md)
+[Project central](https://github.com/users/MateussGont/projects/1) · [Plano de evolução](plano-evolucao.md) · [Calendário semanal até 28/02/2027](planejamento-semanal.md)
 
 44 issues organizadas entre os dois repositórios: 20 novas e seis transferidas, preservando o histórico das anteriores. Este inventário retrata a organização inicial; o status atualizado fica no GitHub. A prioridade vale dentro da fase: P0 de piloto não significa iniciar antes da bancada.
 
-## Primeiro ciclo
+O planejamento posterior acrescentou a [issue #32 — checklist das 24 semanas](https://github.com/MateussGont/cattle-tracker-lora/issues/32), totalizando 45 itens com a coordenação do prazo. O [marco do piloto](https://github.com/MateussGont/cattle-tracker-lora/milestone/5) vence em 28/02/2027 e centraliza o aceite do recorte dos dois repositórios. As issues M1–M4 preservam seu escopo completo.
+
+## Prioridades iniciais
+
+O calendário semanal é a ordem vigente, com 5 h totais da equipe: S01 prepara ambiente e materiais; os ajustes abaixo se distribuem entre S02 e S08. Esta lista não representa uma única semana de trabalho.
 
 - [ ] [[Segurança] Impedir injeção de HTML nos popups do mapa](https://github.com/MateussGont/cattle-tracker-web/issues/7)
 - [ ] [[Segurança] Isolar cache e consultas entre sessões de usuários](https://github.com/MateussGont/cattle-tracker-web/issues/8)
@@ -13,7 +17,7 @@
 - [ ] [[Provisionamento] Corrigir parser USB e permitir retomada do cadastro](https://github.com/MateussGont/cattle-tracker-web/issues/18)
 - [ ] [[Telemetria] Separar horário recebido, horário GNSS e posição atual](https://github.com/MateussGont/cattle-tracker-web/issues/9)
 
-Correção de autorização web#13 deve estar pronta antes de uso entre contas/propriedades distintas. Preparar CI e inventário físico em paralelo, respeitando o limite de trabalho em andamento. O ciclo seguinte entrega identidade/deduplicação (lora#29 + web#1), ingestão atômica (web#10), associações/alertas e a validação de 2 h (lora#9).
+Correção de autorização web#13 está prevista na S06, antes de uso entre contas/propriedades distintas. Identidade/deduplicação ocupa S07–S08; ingestão atômica, S09; validação de uma unidade por 2 h, S10. O recorte do piloto usa associações fixas; alertas e histórico completo de trocas continuam no backlog amplo. Cada semana inclui preparação, execução, validação e registro, sem trabalho paralelo fora do teto da equipe.
 
 ## M1
 
