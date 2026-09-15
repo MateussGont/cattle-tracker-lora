@@ -31,6 +31,7 @@ constexpr std::uint32_t kGnssBaud = 9600;
 
 constexpr char kPrefsNamespace[] = "cattle";
 constexpr char kPrefsKeyDeviceConfig[] = "deviceConfig";
+constexpr char kPrefsKeyLegacyRadioId[] = "radioId";
 
 SX1262 radio = new Module(kLoRaNss, kLoRaDio1, kLoRaReset, kLoRaBusy);
 TinyGPSPlus gps;
@@ -325,6 +326,17 @@ void setup() {
       preferences.getBytes(kPrefsKeyDeviceConfig, &deviceConfig,
                            sizeof(deviceConfig)) == sizeof(deviceConfig)) {
     provisioned = cattle_tracker::isValidDeviceConfig(deviceConfig);
+  }
+  if (!provisioned && preferences.isKey(kPrefsKeyLegacyRadioId)) {
+    const std::uint16_t legacyRadioId =
+        preferences.getUShort(kPrefsKeyLegacyRadioId, 0);
+    if (legacyRadioId != cattle_tracker::kUnprovisionedRadioDeviceId) {
+      const auto migrated = cattle_tracker::makeDeviceConfig(legacyRadioId, 1);
+      provisioned = persistDeviceConfig(migrated);
+      if (provisioned) {
+        Serial.println("migrated legacy radioId to versioned deviceConfig");
+      }
+    }
   }
 
   gnssSerial.begin(kGnssBaud, SERIAL_8N1, kGnssRx, kGnssTx);
