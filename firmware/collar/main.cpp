@@ -1,15 +1,20 @@
 #include <Arduino.h>
+#include <ArduinoJson.h>
 #include <Preferences.h>
 #include <RadioLib.h>
 #include <SPI.h>
 #include <TinyGPSPlus.h>
 
 #include "protocol.h"
+#include "provisioning.h"
 
 namespace {
 
+constexpr char kFirmwareVersion[] = "0.2.0";
 constexpr unsigned long kSendIntervalMs = 10000;
-constexpr unsigned long kGnssReadWindowMs = 2500;
+constexpr unsigned long kGnssWarmupMs = 2500;
+constexpr unsigned long kUnprovisionedNoticeIntervalMs = 2000;
+constexpr std::size_t kSerialLineCapacity = 384;
 
 constexpr int kLoRaSck = 7;
 constexpr int kLoRaMiso = 8;
@@ -20,29 +25,228 @@ constexpr int kLoRaReset = 42;
 constexpr int kLoRaBusy = 40;
 constexpr int kLoRaRfSwitch = 38;
 
-constexpr int kGnssRx = 43;  // XIAO D7, connect to GNSS TX.
-constexpr int kGnssTx = 44;  // XIAO D6, connect to GNSS RX (optional).
+constexpr int kGnssRx = 43;
+constexpr int kGnssTx = 44;
 constexpr std::uint32_t kGnssBaud = 9600;
 
-// Identity (radioDeviceId) is provisioned at first-use over USB serial, not
-// baked into the firmware image at compile time. This lets a single generic
-// binary be flashed once per hardware batch, with each physical unit
-// getting its number assigned later through the app's provisioning wizard
-// (see docs/architecture.md, "Provisionamento de dispositivos"). See
-// tryHandleSerialCommand() below for the wire protocol.
-constexpr const char* kPrefsNamespace = "cattle";
-constexpr const char* kPrefsKeyRadioId = "radioId";
-constexpr unsigned long kUnprovisionedNoticeIntervalMs = 2000;
+constexpr char kPrefsNamespace[] = "cattle";
+constexpr char kPrefsKeyDeviceConfig[] = "deviceConfig";
 
 SX1262 radio = new Module(kLoRaNss, kLoRaDio1, kLoRaReset, kLoRaBusy);
 TinyGPSPlus gps;
 HardwareSerial gnssSerial(1);
 Preferences preferences;
-std::uint32_t sequenceNumber = 0;
+cattle_tracker::DeviceConfig deviceConfig;
 
-std::uint16_t deviceId = 0;
+std::uint32_t sequenceNumber = 0;
 bool provisioned = false;
+bool radioReady = false;
+unsigned long bootMs = 0;
+unsigned long lastSendMs = 0;
 unsigned long lastUnprovisionedNoticeMs = 0;
+char serialLine[kSerialLineCapacity] = {};
+std::size_t serialLineLength = 0;
+
+String hardwareUid() {
+  const std::uint64_t efuseMac = ESP.getEfuseMac();
+  char value[13] = {};
+  snprintf(value, sizeof(value), "%04X%08X",
+           static_cast<unsigned int>((efuseMac >> 32) & 0xFFFFU),
+           static_cast<unsigned int>(efuseMac & 0xFFFFFFFFU));
+  return String(value);
+}
+
+bool isValidRequestId(const char* requestId) {
+  if (requestId == nullptr) {
+    return false;
+  }
+  const std::size_t length = strlen(requestId);
+  if (length == 0 || length > 64) {
+    return false;
+  }
+  for (std::size_t index = 0; index < length; ++index) {
+    const char value = requestId[index];
+    if (!isalnum(static_cast<unsigned char>(value)) && value != '-' &&
+        value != '_') {
+      return false;
+    }
+  }
+  return true;
+}
+
+void writeDeviceInfo(const char* requestId, const char* event = "device_info") {
+  JsonDocument response;
+  response["event"] = event;
+  if (requestId != nullptr) {
+    response["requestId"] = requestId;
+  }
+  response["hardwareUid"] = hardwareUid();
+  response["firmwareVersion"] = kFirmwareVersion;
+  response["provisioned"] = provisioned;
+  response["radioDeviceId"] =
+      provisioned ? deviceConfig.radioDeviceId
+                  : cattle_tracker::kUnprovisionedRadioDeviceId;
+  response["configRevision"] = provisioned ? deviceConfig.configRevision : 0;
+  response["radioReady"] = radioReady;
+  serializeJson(response, Serial);
+  Serial.println();
+}
+
+void writeProvisionError(const char* requestId, const char* code,
+                         const char* message) {
+  JsonDocument response;
+  response["event"] = "provision_error";
+  if (requestId != nullptr) {
+    response["requestId"] = requestId;
+  }
+  response["code"] = code;
+  response["message"] = message;
+  serializeJson(response, Serial);
+  Serial.println();
+}
+
+bool persistDeviceConfig(const cattle_tracker::DeviceConfig& requested) {
+  const std::size_t written = preferences.putBytes(
+      kPrefsKeyDeviceConfig, &requested, sizeof(requested));
+  if (written != sizeof(requested)) {
+    return false;
+  }
+
+  cattle_tracker::DeviceConfig stored;
+  const std::size_t read = preferences.getBytes(
+      kPrefsKeyDeviceConfig, &stored, sizeof(stored));
+  if (read != sizeof(stored) ||
+      !cattle_tracker::isValidDeviceConfig(stored) ||
+      stored.radioDeviceId != requested.radioDeviceId ||
+      stored.configRevision != requested.configRevision) {
+    return false;
+  }
+
+  deviceConfig = stored;
+  provisioned = true;
+  return true;
+}
+
+void handleProvision(JsonDocument& request, const char* requestId) {
+  const char* requestedHardwareUid = request["hardwareUid"] | "";
+  if (!hardwareUid().equalsIgnoreCase(requestedHardwareUid)) {
+    writeProvisionError(requestId, "hardware_uid_mismatch",
+                        "hardwareUid does not match this device");
+    return;
+  }
+  if (!request["radioDeviceId"].is<unsigned int>() ||
+      !request["configRevision"].is<unsigned long>()) {
+    writeProvisionError(requestId, "invalid_payload",
+                        "radioDeviceId and configRevision are required");
+    return;
+  }
+
+  const unsigned int requestedRadioId = request["radioDeviceId"];
+  const unsigned long requestedRevision = request["configRevision"];
+  if (requestedRadioId > 0xFFFFU) {
+    writeProvisionError(requestId, "invalid_radio_device_id",
+                        "radioDeviceId must be between 1 and 65535");
+    return;
+  }
+
+  const auto decision = cattle_tracker::decideProvisioning(
+      provisioned ? &deviceConfig : nullptr,
+      static_cast<std::uint16_t>(requestedRadioId),
+      static_cast<std::uint32_t>(requestedRevision));
+  if (decision == cattle_tracker::ProvisionDecision::kIdempotent) {
+    writeDeviceInfo(requestId, "provision_result");
+    return;
+  }
+  if (decision == cattle_tracker::ProvisionDecision::kInvalidRadioDeviceId) {
+    writeProvisionError(requestId, "invalid_radio_device_id",
+                        "radioDeviceId zero is reserved");
+    return;
+  }
+  if (decision == cattle_tracker::ProvisionDecision::kInvalidRevision) {
+    writeProvisionError(requestId, "invalid_config_revision",
+                        "configRevision must be positive");
+    return;
+  }
+  if (decision == cattle_tracker::ProvisionDecision::kAlreadyProvisioned) {
+    writeProvisionError(requestId, "already_provisioned",
+                        "device identity changes require an authorized recovery flow");
+    return;
+  }
+
+  const auto requestedConfig = cattle_tracker::makeDeviceConfig(
+      static_cast<std::uint16_t>(requestedRadioId),
+      static_cast<std::uint32_t>(requestedRevision));
+  if (!persistDeviceConfig(requestedConfig)) {
+    writeProvisionError(requestId, "persistence_failed",
+                        "configuration could not be verified in NVS");
+    return;
+  }
+  writeDeviceInfo(requestId, "provision_result");
+}
+
+void handleSerialLine(char* line) {
+  while (*line == ' ' || *line == '\t' || *line == '\r') {
+    ++line;
+  }
+  if (*line == '\0') {
+    return;
+  }
+
+  if (strcmp(line, "GET_STATUS") == 0) {
+    writeDeviceInfo(nullptr, "status");
+    return;
+  }
+  if (strncmp(line, "SET_RADIO_ID", 12) == 0) {
+    writeProvisionError(nullptr, "legacy_write_disabled",
+                        "use the correlated JSON provision command");
+    return;
+  }
+
+  JsonDocument request;
+  const DeserializationError error = deserializeJson(request, line);
+  if (error || !request.is<JsonObject>()) {
+    writeProvisionError(nullptr, "invalid_json", "expected one JSON object per line");
+    return;
+  }
+
+  const char* requestId = request["requestId"] | nullptr;
+  if (!isValidRequestId(requestId)) {
+    writeProvisionError(nullptr, "invalid_request_id",
+                        "requestId must be 1-64 URL-safe characters");
+    return;
+  }
+  const char* command = request["cmd"] | "";
+  if (strcmp(command, "get_info") == 0) {
+    writeDeviceInfo(requestId);
+    return;
+  }
+  if (strcmp(command, "provision") == 0) {
+    handleProvision(request, requestId);
+    return;
+  }
+  writeProvisionError(requestId, "unknown_command", "unsupported command");
+}
+
+void pollSerial() {
+  while (Serial.available() > 0) {
+    const char value = static_cast<char>(Serial.read());
+    if (value == '\n') {
+      serialLine[serialLineLength] = '\0';
+      handleSerialLine(serialLine);
+      serialLineLength = 0;
+      continue;
+    }
+    if (value == '\r') {
+      continue;
+    }
+    if (serialLineLength + 1 >= kSerialLineCapacity) {
+      serialLineLength = 0;
+      writeProvisionError(nullptr, "line_too_long", "serial command exceeded 383 bytes");
+      continue;
+    }
+    serialLine[serialLineLength++] = value;
+  }
+}
 
 std::int64_t daysFromCivil(int year, unsigned month, unsigned day) {
   year -= month <= 2;
@@ -60,7 +264,6 @@ std::uint32_t gnssUnixTime() {
   if (!gps.date.isValid() || !gps.time.isValid()) {
     return 0;
   }
-
   const std::int64_t days =
       daysFromCivil(gps.date.year(), gps.date.month(), gps.date.day());
   const std::int64_t seconds =
@@ -69,19 +272,16 @@ std::uint32_t gnssUnixTime() {
   return seconds > 0 ? static_cast<std::uint32_t>(seconds) : 0;
 }
 
-cattle_tracker::LocationData readLocation() {
-  const unsigned long startedAt = millis();
-  while (millis() - startedAt < kGnssReadWindowMs) {
-    while (gnssSerial.available() > 0) {
-      gps.encode(static_cast<char>(gnssSerial.read()));
-    }
-    delay(2);
+void pollGnss() {
+  while (gnssSerial.available() > 0) {
+    gps.encode(static_cast<char>(gnssSerial.read()));
   }
+}
 
+cattle_tracker::LocationData currentLocation() {
   cattle_tracker::LocationData location;
-  location.deviceId = deviceId;
+  location.deviceId = deviceConfig.radioDeviceId;
   location.sequence = ++sequenceNumber;
-
   if (gps.location.isValid() && gps.location.age() < 5000) {
     location.latitudeE7 =
         static_cast<std::int32_t>(gps.location.lat() * 10000000.0);
@@ -89,132 +289,77 @@ cattle_tracker::LocationData readLocation() {
         static_cast<std::int32_t>(gps.location.lng() * 10000000.0);
     location.flags |= cattle_tracker::kFlagGnssFix;
   }
-
   location.gnssUnixTime = gnssUnixTime();
   if (location.gnssUnixTime != 0) {
     location.flags |= cattle_tracker::kFlagGnssTimeValid;
   }
-
-  // The XIAO ESP32-S3 does not expose battery measurement by default.
-  location.batteryMv = 0;
   return location;
 }
 
-void stopWithRadioError(const char* operation, int16_t state) {
-  Serial.printf("%s failed, RadioLib code %d\n", operation, state);
-  while (true) {
-    delay(1000);
-  }
-}
-
-/**
- * Text line protocol over USB serial (115200 8N1), used by the app's
- * device-provisioning wizard:
- *   "SET_RADIO_ID <0-65535>"  -> stores the id in NVS, replies
- *                                 {"event":"provisioned","radioDeviceId":N}
- *   "GET_STATUS"              -> replies {"event":"status", ...} without
- *                                 changing anything, so the app can check
- *                                 what a plugged-in unit is already set to.
- * Accepted at any time (not just first boot), so re-assigning a collar to a
- * different animal later is just sending SET_RADIO_ID again — no reflash.
- */
-bool tryHandleSerialCommand() {
-  if (!Serial.available()) {
-    return false;
+void transmitLocation() {
+  const cattle_tracker::LocationData location = currentLocation();
+  std::uint8_t payload[cattle_tracker::kEncodedLocationSize] = {};
+  if (!cattle_tracker::encodeLocation(location, payload, sizeof(payload))) {
+    Serial.println("payload encoding failed");
+    return;
   }
 
-  String line = Serial.readStringUntil('\n');
-  line.trim();
-  if (line.length() == 0) {
-    return false;
-  }
-
-  if (line == "GET_STATUS") {
-    Serial.printf(
-        "{\"event\":\"status\",\"provisioned\":%s,\"radioDeviceId\":%u}\n",
-        provisioned ? "true" : "false", deviceId);
-    return true;
-  }
-
-  unsigned int parsedId = 0;
-  if (sscanf(line.c_str(), "SET_RADIO_ID %u", &parsedId) == 1 && parsedId <= 0xFFFF) {
-    deviceId = static_cast<std::uint16_t>(parsedId);
-    preferences.putUShort(kPrefsKeyRadioId, deviceId);
-    provisioned = true;
-    Serial.printf("{\"event\":\"provisioned\",\"radioDeviceId\":%u}\n", deviceId);
-    return true;
-  }
-
-  Serial.println(
-      "{\"event\":\"provision_error\",\"message\":\"expected 'SET_RADIO_ID <0-65535>' or 'GET_STATUS'\"}");
-  return false;
+  digitalWrite(kLoRaRfSwitch, LOW);
+  const int16_t state = radio.transmit(payload, sizeof(payload));
+  digitalWrite(kLoRaRfSwitch, HIGH);
+  Serial.printf("seq=%lu fix=%u lat=%.7f lon=%.7f tx_state=%d\n",
+                static_cast<unsigned long>(location.sequence),
+                (location.flags & cattle_tracker::kFlagGnssFix) != 0,
+                location.latitudeE7 / 10000000.0,
+                location.longitudeE7 / 10000000.0, state);
 }
 
 }  // namespace
 
 void setup() {
   Serial.begin(115200);
-  delay(1500);
+  bootMs = millis();
 
   preferences.begin(kPrefsNamespace, false);
-  provisioned = preferences.isKey(kPrefsKeyRadioId);
-  if (provisioned) {
-    deviceId = preferences.getUShort(kPrefsKeyRadioId, 0);
+  if (preferences.getBytesLength(kPrefsKeyDeviceConfig) == sizeof(deviceConfig) &&
+      preferences.getBytes(kPrefsKeyDeviceConfig, &deviceConfig,
+                           sizeof(deviceConfig)) == sizeof(deviceConfig)) {
+    provisioned = cattle_tracker::isValidDeviceConfig(deviceConfig);
   }
 
   gnssSerial.begin(kGnssBaud, SERIAL_8N1, kGnssRx, kGnssTx);
   SPI.begin(kLoRaSck, kLoRaMiso, kLoRaMosi, kLoRaNss);
-
   pinMode(kLoRaRfSwitch, OUTPUT);
-  digitalWrite(kLoRaRfSwitch, HIGH);  // Receive/idle path on Wio-SX1262.
+  digitalWrite(kLoRaRfSwitch, HIGH);
 
   const int16_t state = radio.begin(
       915.0, 125.0, 7, 5, RADIOLIB_SX126X_SYNC_WORD_PRIVATE, 14, 8, 1.8,
       false);
-  if (state != RADIOLIB_ERR_NONE) {
-    stopWithRadioError("SX1262 init", state);
+  radioReady = state == RADIOLIB_ERR_NONE;
+  if (!radioReady) {
+    Serial.printf("SX1262 init failed, RadioLib code %d\n", state);
   }
-
-  Serial.println("collar ready: XIAO ESP32-S3 + Wio-SX1262");
-  Serial.printf(
-      "{\"event\":\"boot\",\"provisioned\":%s,\"radioDeviceId\":%u}\n",
-      provisioned ? "true" : "false", deviceId);
+  writeDeviceInfo(nullptr, "boot");
 }
 
 void loop() {
-  tryHandleSerialCommand();
+  pollSerial();
+  pollGnss();
 
+  const unsigned long now = millis();
   if (!provisioned) {
-    // Nothing to transmit yet: no radioDeviceId has been assigned to this
-    // physical unit. Idle and keep announcing readiness so the app's
-    // provisioning wizard can confirm it is talking to the right port.
-    const unsigned long now = millis();
     if (now - lastUnprovisionedNoticeMs >= kUnprovisionedNoticeIntervalMs) {
       lastUnprovisionedNoticeMs = now;
       Serial.println("{\"event\":\"awaiting_provisioning\"}");
     }
-    delay(50);
+    delay(2);
     return;
   }
 
-  const cattle_tracker::LocationData location = readLocation();
-  std::uint8_t payload[cattle_tracker::kEncodedLocationSize] = {};
-  if (!cattle_tracker::encodeLocation(location, payload, sizeof(payload))) {
-    Serial.println("payload encoding failed");
-    delay(kSendIntervalMs);
-    return;
+  if (radioReady && now - bootMs >= kGnssWarmupMs &&
+      now - lastSendMs >= kSendIntervalMs) {
+    lastSendMs = now;
+    transmitLocation();
   }
-
-  digitalWrite(kLoRaRfSwitch, LOW);  // Transmit path on Wio-SX1262.
-  const int16_t state = radio.transmit(payload, sizeof(payload));
-  digitalWrite(kLoRaRfSwitch, HIGH);
-
-  Serial.printf(
-      "seq=%lu fix=%u lat=%.7f lon=%.7f tx_state=%d\n",
-      static_cast<unsigned long>(location.sequence),
-      (location.flags & cattle_tracker::kFlagGnssFix) != 0,
-      location.latitudeE7 / 10000000.0,
-      location.longitudeE7 / 10000000.0, state);
-
-  delay(kSendIntervalMs);
+  delay(2);
 }
