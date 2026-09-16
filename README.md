@@ -34,7 +34,7 @@ flowchart LR
 
 ## Estado do protótipo
 
-Rádio atual: 915 MHz, BW125, SF7, CR4/5, preâmbulo 8, rede privada; pacote v1 de 26 bytes. O ciclo atual inclui janela GNSS de 2,5 s e espera de 10 s, portanto não produz intervalo exato de 10 s. Bateria ainda é enviada como zero sem medição real. Recepção do gateway e provisionamento serial precisam de melhorias antes dos ensaios multinós.
+Rádio atual: 915 MHz, BW125, SF7, CR4/5, preâmbulo 8, rede privada; pacote v1 de 26 bytes. O firmware é genérico: cada unidade expõe o MAC de fábrica do ESP32-S3 como `hardwareUid` e recebe um `radioDeviceId` pelo aplicativo. A configuração é versionada, verificada em NVS e não pode ser alterada pelo comando legado. GNSS e USB são atendidos sem a antiga espera bloqueante; bateria ainda é enviada como zero sem medição real.
 
 A documentação anterior indica GNSS TX → XIAO D7/GPIO44 (RX), enquanto o firmware atual configura RX43/TX44. Confira a placa e resolva [#26](https://github.com/MateussGont/cattle-tracker-lora/issues/26) antes de seguir a ligação como validada. Os parâmetros RF e de alimentação devem ser conferidos no hardware; a revisão não representa teste em placa.
 
