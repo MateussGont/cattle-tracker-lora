@@ -2,8 +2,10 @@
 
 #include <PubSubClient.h>
 #include <WiFi.h>
+#include <WiFiClientSecure.h>
 
 #include "protocol.h"
+#include "transport_policy.h"
 
 namespace cattle_tracker {
 
@@ -25,9 +27,9 @@ struct GatewayConfig {
  * swapped later — e.g. for a LoRaWAN network server webhook — without
  * touching the radio code.
  *
- * Non-blocking by design: begin()/loop() never call delay() longer than a
- * WiFi/PubSubClient library call itself blocks for, so the LoRa receive
- * loop in main.cpp keeps running even while Wi-Fi or the broker is down.
+ * SNTP waiting and retry scheduling do not block. DNS/TCP/TLS/MQTT calls
+ * are still synchronous; timeouts are bounded, but LoRa may miss packets
+ * during connection attempts. The async radio pipeline remains separate work.
  */
 class MqttPublisher {
  public:
@@ -42,8 +44,10 @@ class MqttPublisher {
 
  private:
   GatewayConfig config_;
-  WiFiClient wifiClient_;
+  WiFiClientSecure wifiClient_;
   PubSubClient mqttClient_;
+  ClockSyncGate clockGate_;
+  bool enabled_ = false;
   unsigned long lastWifiAttemptMs_ = 0;
   unsigned long lastMqttAttemptMs_ = 0;
 

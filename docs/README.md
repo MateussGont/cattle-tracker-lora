@@ -12,3 +12,4 @@
 | [Separação e integração](separacao-repositorios.md) | Trabalhar com dois repositórios e importar firmware |
 | [Arquitetura histórica](architecture.md) | Consultar decisões anteriores |
 | [Gravação e drivers](upload-and-drivers.md) | Consultar suporte a gravação das placas |
+| [Gateway MQTT TLS](gateway-mqtt-tls.md) | Preparar Wi-Fi, credenciais e conexão segura com a VPS |
