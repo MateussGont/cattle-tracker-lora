@@ -53,4 +53,3 @@ tL4ndQavEi51mI38AjEAi/V3bNTIZargCyzuFJ0nN6T5U6VR5CmD1/iQMVtCnwr1
 -----END CERTIFICATE-----
 )PEM";
 }  // namespace cattle_tracker
-

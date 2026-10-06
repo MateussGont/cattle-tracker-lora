@@ -58,3 +58,13 @@ No Windows, acrescente `.exe` ao teste nativo. O script Node usa exatamente o bu
 - Registrar placa, commit, ambiente, tempo até conexão e eventual perda durante handshake.
 
 Não encerra [resiliência #12](https://github.com/MateussGont/cattle-tracker-lora/issues/12), [ensaio ponta a ponta #9](https://github.com/MateussGont/cattle-tracker-lora/issues/9) ou [identidade do gateway web #14](https://github.com/MateussGont/cattle-tracker-web/issues/14). O gateway continua sem acesso direto ao banco e sem depender da VPN administrativa.
+
+## Evidência de software — 2026-10-05
+
+Código `4dfc0a01c47668353d2f25a2e11b4b125d7747b1`, Windows, PlatformIO Espressif32 7.1.3 / Arduino-ESP32 2.0.17, RadioLib7.7.1, PubSubClient2.8.0, ArduinoJson7.4.3:
+
+- Heltec V2: build aprovado, RAM47312 bytes (14,4%), flash945169 bytes (28,3%), somente placeholders de credenciais.
+- XIAO ESP32-S3: build de regressão aprovado, RAM20880 bytes, flash337617 bytes. Aviso existente RadioLib sobre USB CDC em sleep; nenhuma alteração no brinco.
+- Testes nativos `test_protocol`, `test_provisioning` e `test_transport_policy` aprovados com C++11/MinGW.
+- Script Node confirmou fingerprints das duas raízes e TLS1.2 no broker público com validade até 2026-12-27, rejeitando hostname incorreto e CA não confiável.
+- Nenhuma gravação USB, conexão MQTT autenticada a partir de ESP32 ou medição LoRa foi executada nesta etapa. A compilação e o cliente Node não validam memória disponível durante handshake na placa.
