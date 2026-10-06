@@ -20,6 +20,7 @@ flowchart LR
 - [Manual de cadastro do brinco](docs/manual-cadastro-brinco.md).
 - [Revisão completa do firmware](docs/revisao-firmware.md) e [revisão de código e arquitetura](docs/revisao-cattle-tracker-lora.md).
 - [Separação, contratos e distribuição do firmware](docs/separacao-repositorios.md).
+- [Configurar o gateway para MQTT seguro na VPS](docs/gateway-mqtt-tls.md).
 
 ## Estrutura
 
@@ -50,7 +51,7 @@ pio run -e receiver_heltec_v2 -t upload
 pio device monitor -b 115200
 ```
 
-Prepare localmente firmware/receiver/secrets.h a partir de secrets.h.example. As credenciais devem corresponder ao broker da aplicação web. Conecte as antenas corretas antes de transmitir. Não publique credenciais nem imagens de gateway que as contenham.
+Prepare localmente firmware/receiver/secrets.h a partir de secrets.h.example. O gateway usa MQTT com TLS em cattletracker.tech:8883, valida certificado e sincroniza o relógio por SNTP antes de conectar. As credenciais devem corresponder ao broker da aplicação web; consulte o [roteiro TLS](docs/gateway-mqtt-tls.md). Conecte as antenas corretas antes de transmitir. Não publique credenciais nem imagens de gateway que as contenham.
 
 Para gerar a imagem completa usada no cadastro USB, após compilar o brinco:
 
